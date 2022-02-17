@@ -1,10 +1,10 @@
 # R script to install requirements for exercises -------------------------------
 
 ## global variables (edit in this section) -------------------------------------
-pkgs <- c("velociraptor", "SummarizedExperiment", "SingleCellExperiment", 
-          "tximeta", "eisaR", "fishpond", "basilisk", "Biostrings", "BSgenome",
-          "GenomicFeatures", "rjson", "scRNAseq", "zellkonverter", "cowplot",
-          "knitr", "rmarkdown", "htmltools", "BiocStyle", "shiny")
+pkgs <- c("SummarizedExperiment", "SingleCellExperiment",
+          "TENxPBMCData", "iSEE", "iSEEu", "scater", "scuttle", "scran",
+          "BiocSingular", "SingleR", "celldex", "igraph", "knitr", "rmarkdown",
+          "htmltools", "BiocStyle", "shiny")
 
 
 ## install Bioconductor --------------------------------------------------------
