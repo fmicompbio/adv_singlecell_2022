@@ -1,7 +1,9 @@
 # R script to install requirements for exercises -------------------------------
 
 ## global variables (edit in this section) -------------------------------------
-pkgs <- c()
+pkgs <- c("miloR","muscat","devtools", "distinct",
+          "condiments", "nebula", "sechm", "dynverse/dyntoy",
+          "fionarhuang/treeclimbR")
 
 
 ## install Bioconductor --------------------------------------------------------
@@ -20,7 +22,7 @@ BiocManager::install(pkgs, update = FALSE)
 
 
 ## check package loading -------------------------------------------------------
-for (pkg in pkgs)
+for (pkg in basename(pkgs))
     library(pkg, character.only = TRUE)
 
 
