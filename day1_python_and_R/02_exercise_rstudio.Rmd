@@ -11,6 +11,8 @@ output:
     number_sections: true
     theme: sandstone
     highlight: tango
+editor_options: 
+  chunk_output_type: console
 ---
 
 
@@ -170,11 +172,11 @@ If you run `py_config()` and Python bindings have not been initialized yet, they
 will be initialized by that function:
 ```{r selectPython, class.source="rchunk"}
 # set python env (only needed on server xenon6)
-if (Sys.info()["nodename"] == "xenon6.fmi.ch") { getwd()
-    Sys.setenv(PYTHONPATH = file.path(getwd(), "pythonlib"))
-    Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3")
+if (grepl(".fmi.ch$", Sys.info()["nodename"])) {
+    Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/lib/python3.9/site-packages/")
+    reticulate::use_condaenv("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
 } else {
-    Sys.setenv(RETICULATE_PYTHON = "/Users/stadler/miniforge3/bin/python3")
+    # Sys.setenv(RETICULATE_PYTHON = "/Users/stadler/miniforge3/bin/python3")
 
     # use_python("~/miniforge3/bin/python")
     # use_condaenv("base")
@@ -322,12 +324,12 @@ objects.
 class(iris)
 ```
 ```{python, class.source="pythonchunk"}
-type(r.iris)
 pyiris = r.iris
+# type(pyiris)
 pyiris.columns
 ```
 
-- Calculate a concise summary of the dataframe both in R and Python:
+- Calculate a concise summary of the data frame both in R and Python:
 ```{r, class.source="rchunk"}
 summary(iris)
 ```
@@ -393,6 +395,7 @@ ax.legend()
 
 ax.set_xlabel('Sepal length (mm)', fontsize=12)
 ax.set_ylabel('Petal length (mm)', fontsize=12)
+plt.show()
 ```
 
 

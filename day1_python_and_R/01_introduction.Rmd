@@ -1,11 +1,11 @@
 ---
 title: 'Combining the best of two worlds: Python & R'
 author: "Michael Stadler"
-date: "May 27, 2020"
+date: "April 7, 2022"
 output:
-  ioslides_presentation:
-    css: styles.css
-    widescreen: true
+    ioslides_presentation:
+        css: styles.css
+        widescreen: true
 ---
 
 <!-- formatting help: -->
@@ -16,11 +16,23 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 # python lib for required packages not available on the system
 # install e.g. using:
-#    pip3 install numpy scipy rpy2 matplotlib sinfo pandas --target ./combining_python_and_R/pythonlib/ --upgrade
-Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/SIB_advanced-scRNAseq-course_2020/adv_scrnaseq_2020/pythonlib")
-Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3.6") # use system python 3.6
+#    pip3 install numpy scipy rpy2 matplotlib sinfo pandas --target ./pythonlib/ --upgrade
+#                 or:
+#    module load Miniconda3/4.10.3
+#    conda create --prefix /tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv python=3.9 numpy scipy rpy2 matplotlib sinfo pandas jupyter jupyterlab --channel conda-forge
+#    conda activate /tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv
+#    Rscript /tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/R_requirements.R
 library(reticulate)
-py_config()
+if (grepl(".fmi.ch$", Sys.info()["nodename"])) {
+    # Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/pythonlib")
+    # Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3.6") # use system python 3.6
+    # systemPipeR::moduleload("Miniconda3/4.10.3")
+    # reticulate::use_python("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
+    Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/lib/python3.9/site-packages/")
+    reticulate::use_condaenv("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
+}
+reticulate::py_config()
+stopifnot(reticulate::py_available())
 ```
 
 ## Outline
