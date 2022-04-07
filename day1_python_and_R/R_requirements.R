@@ -1,7 +1,7 @@
 # R script to install requirements for exercises -------------------------------
 
 ## global variables (edit in this section) -------------------------------------
-pkgs <- c()
+pkgs <- c("devtools", "reticulate", "knitr", "rmarkdown", "ggplot2")
 
 
 ## install Bioconductor --------------------------------------------------------
