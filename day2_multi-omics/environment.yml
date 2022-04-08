@@ -1,0 +1,20 @@
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - leidenalg
+  - pip
+  - pip:
+    - muon==0.1.2
+    - numpy
+    - scipy
+    - pandas
+    - matplotlib
+    - seaborn
+    - scanpy==1.9.1
+    - dask
+    - muon[atac]
+    - mofapy2==0.6.4
+    - pyranges
+    - pyensembl==1.9.4
+    - sklearn

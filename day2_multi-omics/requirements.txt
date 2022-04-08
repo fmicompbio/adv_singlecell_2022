@@ -2,3 +2,16 @@
 #   list of items to be installed by pip
 #   (see https://pip.pypa.io/en/stable/reference/requirements-file-format/)
 #   typically used in `pip install -r requirements.txt`
+
+numpy
+scipy
+pandas
+matplotlib
+seaborn
+scanpy == 1.9.1
+dask
+muon[atac]
+mofapy2
+pyranges
+pyensembl
+sklearn
