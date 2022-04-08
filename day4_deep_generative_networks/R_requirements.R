@@ -1,7 +1,10 @@
 # R script to install requirements for exercises -------------------------------
 
 ## global variables (edit in this section) -------------------------------------
-pkgs <- c()
+pkgs <- c("reticulate", "SummarizedExperiment", "SingleCellExperiment", 
+          "keras", "tensorflow", "Matrix", "Rtsne", "rsvd", "RColorBrewer",
+          "gridextra", "umap", "tibble", "ggplot2", "cowplot",
+          "knitr", "rmarkdown", "htmltools", "BiocStyle", "shiny")
 
 
 ## install Bioconductor --------------------------------------------------------

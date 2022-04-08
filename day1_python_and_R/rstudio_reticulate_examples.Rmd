@@ -1,0 +1,37 @@
+```{r}
+x <- rnorm(100, 10, 1)
+mean(x)
+```
+
+```{python}
+import numpy as np
+y = np.random.normal(20, 1, 100)
+np.mean(y)
+```
+
+
+```{r}
+mean(py$y)
+```
+
+```{python}
+np.mean(r.x)
+```
+
+
+
+
+
+
+```{r}
+data(iris)
+summary(iris[, 1:2])
+```
+
+```{python, fig.width=5, fig.height=2, warnings=FALSE}
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots()
+ax.scatter(r.iris["Sepal.Length"], r.iris["Sepal.Width"])
+plt.show()
+```
