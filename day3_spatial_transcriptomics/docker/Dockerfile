@@ -18,6 +18,11 @@ RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugin
 RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Feature_Space.py
 RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Feature_Space.js
 
+# install TissUUmaps histogram plugin
+RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.yml
+RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.py
+RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.js
+
 # install dependencies for interaction
 RUN pip install tissuumaps
 RUN pip install pooch
