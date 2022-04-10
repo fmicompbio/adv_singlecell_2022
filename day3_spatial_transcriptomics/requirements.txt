@@ -1,4 +1,6 @@
-# requirements.txt
-#   list of items to be installed by pip
-#   (see https://pip.pypa.io/en/stable/reference/requirements-file-format/)
-#   typically used in `pip install -r requirements.txt`
+scanpy>=1.9.0
+scvi-tools>=0.15.4
+git+https://github.com/theislab/squidpy@master
+git+https://github.com/giovp/eggplant@master
+scikit-misc
+tangram-sc
