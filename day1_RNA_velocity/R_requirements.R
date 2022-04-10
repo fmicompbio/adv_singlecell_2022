@@ -4,7 +4,9 @@
 pkgs <- c("velociraptor", "SummarizedExperiment", "SingleCellExperiment", 
           "tximeta", "eisaR", "fishpond", "basilisk", "Biostrings", "BSgenome",
           "GenomicFeatures", "rjson", "scRNAseq", "zellkonverter", "cowplot",
-          "knitr", "rmarkdown", "htmltools", "BiocStyle", "shiny")
+          "knitr", "rmarkdown", "htmltools", "BiocStyle", "shiny", "dplyr",
+          "ggplot2", "tidyr", "reticulate", "scuttle", "scran", "scater",
+          "veloviz")
 
 
 ## install Bioconductor --------------------------------------------------------
