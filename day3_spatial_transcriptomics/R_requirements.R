@@ -1,7 +1,7 @@
 # R script to install requirements for exercises -------------------------------
 
 ## global variables (edit in this section) -------------------------------------
-pkgs <- c()
+pkgs <- c("zellkonverter","SpatialExperiment","ggspavis")
 
 
 ## install Bioconductor --------------------------------------------------------
