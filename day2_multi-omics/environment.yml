@@ -18,3 +18,5 @@ dependencies:
     - pyranges
     - pyensembl==1.9.4
     - sklearn
+    - ipykernel
+  
