@@ -16,14 +16,17 @@ if (!identical(as.character(BiocManager::version()), biocversion)) {
     BiocManager::install(version = biocversion)
 }
 
+## install and check package loading -------------------------------------------
+for (pkg in basename(pkgs)) {
+    BiocManager::install(pkg, ask = FALSE, update = FALSE);
 
-## install additional packages -------------------------------------------------
-BiocManager::install(pkgs, update = FALSE)
-
-
-## check package loading -------------------------------------------------------
-for (pkg in basename(pkgs))
-    library(pkg, character.only = TRUE)
-
+    if (! library(pkg, character.only = TRUE, logical.return = TRUE)) {
+        write(paste0("Installation of package ",
+                     p,
+                     " exited with non-zero exit status"),
+                     stdout())
+        quit(status = 1, save = "no")
+    }
+}
 
 sessionInfo()
