@@ -23,7 +23,7 @@ for (pkg in basename(pkgs)) {
 
     if (! library(pkg, character.only = TRUE, logical.return = TRUE)) {
         write(paste0("Installation of package ",
-                     p,
+                     pkg,
                      " exited with non-zero exit status"),
                      stdout())
         quit(status = 1, save = "no")
