@@ -2,9 +2,11 @@
 
 ## global variables (edit in this section) -------------------------------------
 pkgs <- c("miloR","muscat","devtools", "distinct",
-          "condiments", "nebula", "sechm", "dynverse/dyntoy",
-          "fionarhuang/treeclimbR")
+          "condiments", "nebula", "sechm"
+          )
 
+devtools::install_github("dynverse/dyntoy")
+devtools::install_github("fionarhuang/treeclimbR")
 
 ## install Bioconductor --------------------------------------------------------
 biocversion <- "3.14"
