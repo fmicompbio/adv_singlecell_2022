@@ -12,13 +12,12 @@ matplotlib
 pydotplus
 sklearn
 scanpy
-os
 gseapy
 seaborn
 anndata
 statsmodels
 scvi
 numba
-pytables
+tables
 leidenalg
-skmisc
+scikit-misc
