@@ -20,5 +20,5 @@ Specifically, we will be using the data generated using the 10X genomics Multiom
     - `Trevino_multiome_ATAC_clean.peaks_bias.bed` - BED file storing peak genomic locations and GC bias (calculated using `chromVAR::addGCBias`)
     
 - **multi-modal objects**
-    - *vertical_clean_embeddings.h5mu* - MuData object storing results from joint-dimensionality reduction on both modalities 
+    - *vertical_clean_embeddings.h5mu* - MuData object storing results from joint-dimensionality reduction on both modalities (output to `2_multiomics_joint.ipynb`)
 
