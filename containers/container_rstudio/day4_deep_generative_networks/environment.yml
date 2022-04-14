@@ -1,0 +1,27 @@
+
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - keras
+    - tensorflow
+    - torch
+    - numpy
+    - scipy
+    - pandas
+    - matplotlib
+    - pydotplus
+    - sklearn
+    - scanpy
+    - gseapy
+    - seaborn
+    - anndata
+    - statsmodels
+    - scvi
+    - numba
+    - tables
+    - leidenalg
+    - scikit-misc

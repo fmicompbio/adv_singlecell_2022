@@ -1,14 +1,37 @@
-FROM jupyter/scipy-notebook:latest
+FROM jupyter/minimal-notebook:latest
 
 USER root
+RUN cat /etc/skel/.bashrc >> /etc/bash.bashrc
 
-# install libvips for TissUUmaps
 RUN apt-get update
-#RUN apt-get install libvips -y
-RUN apt install libvips-dev -y
-RUN apt-get install openslide-tools	
 
-user jovyan
+RUN apt-get install -y \
+curl \
+libhdf5-dev \
+gcc \
+g++ \
+libtool \
+openslide-tools	\
+libvips-dev
+
+# change back to notebook user
+USER $NB_UID
+
+ENV CONDA=/opt/conda/bin
+
+ENV PART=day2_multi-omics
+COPY $PART/environment.yml .
+RUN $CONDA/conda env create \
+-n $PART \
+-f environment.yml
+
+ENV PART=day3_spatial_transcriptomics
+COPY $PART/environment.yml .
+RUN $CONDA/conda env create \
+-n $PART \
+-f environment.yml
+
+RUN /opt/conda/bin/conda install -y nb_conda_kernels
 
 # create directory for TissUUmaps
 RUN mkdir -p ~/.tissuumaps/plugins
@@ -22,17 +45,3 @@ RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugin
 RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.yml
 RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.py
 RUN wget -P ~/.tissuumaps/plugins https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.js
-
-# install dependencies for interaction
-RUN pip install tissuumaps
-RUN pip install pooch
-RUN pip install scikit-image
-RUN pip install spatial-analysis-toolkit[tissuumaps]
-
-# install dependencies for spatial analysis
-#RUN pip install scanpy>=1.9.0
-#RUN pip install scvi-tools>=0.15.4
-#RUN pip install git+https://github.com/theislab/squidpy@master
-#RUN pip install git+https://github.com/almaan/eggplant@master
-#RUN pip install nb_black
-#RUN pip install scikit-misc

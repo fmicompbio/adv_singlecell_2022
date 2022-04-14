@@ -1,0 +1,8 @@
+﻿part,container,conda_env
+day1_RNA_velocity,rstudio,day1_RNA_velocity
+day1_differential_analysis,rstudio,day1_differential_analysis
+day1_python_and_R,rstudio,day1_python_and_R
+day2_multi-omics,jupyter,day2_multi-omics
+day3_interactive_visualization_iSEE,rstudio,day3_interactive_visualization_iSEE
+day3_spatial_transcriptomics,jupyter,day3_spatial_transcriptomics
+day4_deep_generative_networks,rstudio,day4_deep_generative_networks

@@ -1,0 +1,14 @@
+
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - numpy
+    - scipy
+    - rpy2
+    - matplotlib
+    - sinfo
+    - pandas

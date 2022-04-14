@@ -1,0 +1,11 @@
+
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - anndata >= 0.7.4
+    - scanpy >= 1.6.0
+    - scvelo >= 0.2.2

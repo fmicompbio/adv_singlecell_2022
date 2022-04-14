@@ -1,0 +1,19 @@
+
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+    - scanpy>=1.9.0
+    - scvi-tools>=0.15.4
+    - git+https://github.com/theislab/squidpy@master
+    - git+https://github.com/giovp/eggplant@master
+    - scikit-misc
+    - tangram-sc
+    - tissuumaps
+    - pooch
+    - scikit-image
+    - spatial-analysis-toolkit[tissuumaps]
+    - ipykernel

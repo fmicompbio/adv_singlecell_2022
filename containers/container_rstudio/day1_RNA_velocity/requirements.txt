@@ -2,22 +2,6 @@
 #   list of items to be installed by pip
 #   (see https://pip.pypa.io/en/stable/reference/requirements-file-format/)
 #   typically used in `pip install -r requirements.txt`
-keras
-tensorflow
-torch
-numpy
-scipy
-pandas
-matplotlib
-pydotplus
-sklearn
-scanpy
-gseapy
-seaborn
-anndata
-statsmodels
-scvi
-numba
-tables
-leidenalg
-scikit-misc
+anndata >= 0.7.4
+scanpy >= 1.6.0
+scvelo >= 0.2.2
