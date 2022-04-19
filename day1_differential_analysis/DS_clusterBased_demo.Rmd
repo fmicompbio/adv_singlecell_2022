@@ -5,11 +5,6 @@ date: "4/11/2022"
 output: html_document
 ---
 
-As main example, we will use a dataset of 4 vs 4 scRNAseq samples of the mouse cortex exposed to LPS (an endotoxin mimicking the inflammatory response to pathogens) or to a vehicle control.
-The data was published in [Crowell et al., 2020](https://doi.org/10.1038/s41467-020-19894-4), and we will use the data (clustering & annotation) from that analysis (with some extra simplification). The code for this analysis is available [here](http://htmlpreview.github.io/?https://github.com/HelenaLC/muscat-comparison/blob/master/LPS/docs/index.html). Another example pipeline for these steps is available [here](https://github.com/sta426hs2021/material/blob/main/week13-13dec2021/workflow.Rmd).
-
-We will use this example to showcase cluster-based differential-state (DS) analysis.
-
 # Loading the necessary packages
 
 ```{r}
@@ -45,7 +40,6 @@ sce <- prepSCE(sce, kid="cluster_id", sid="sample_id", gid="group_id")
 # compute pseudobulk (sum of counts) by cluster-sample
 pb <- aggregateData(sce, assay = "counts", 
                     by=c("cluster_id", "sample_id"), fun="sum")
-saveRDS(pb, file="DS_pb.rds")
 ```
 
 We can then also generated a pseudo-bulk level MDS plot:
@@ -134,6 +128,7 @@ So we see that a lot of DEGs that are supposedly specific to endothelial cells r
 
 The heatmap gives us an idea about which genes are truly specific, but how could we narrow it down using a statistically grounded approach?
 
+See the [Exercise](DS_exercise.Rmd)!
 
 ## Hierarchical approach using treeClimbr
 
