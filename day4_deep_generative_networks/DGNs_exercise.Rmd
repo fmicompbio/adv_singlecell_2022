@@ -33,7 +33,7 @@ system("pipenv --python 3.8")
 venv <- system("pipenv --venv", inter = TRUE)
 reticulate::use_virtualenv(venv, required = TRUE)
 library(tensorflow)
-install_tensorflow(version= '2.2.0-gpu')
+install_tensorflow(version= '2.4.0')
 library(keras)
 library(Matrix)
 library(SingleCellExperiment)
@@ -46,9 +46,10 @@ library(RColorBrewer)
 
 ```{r, include=FALSE}
 #Specific setup for xenon6 execution :
-reticulate::use_virtualenv("/tungstenfs/groups/gbioinfo/sharedSoft/virtualenvs/r-4.1-bioc-3.13-reticulate-keras-2.4.0-tensorflow-2.4.0-gpu/")
-Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
-ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
+#reticulate::use_virtualenv("/tungstenfs/groups/gbioinfo/sharedSoft/virtualenvs/r-4.1-bioc-3.13-reticulate-keras-2.4.0-tensorflow-2.4.0-gpu/")
+# GPU execution
+#Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
+#ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
 reticulate::py_config()
 library(keras)
 K <- backend() # manual add-on
