@@ -176,6 +176,8 @@ if (grepl(".fmi.ch$", Sys.info()["nodename"])) {
     Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/lib/python3.9/site-packages/")
     reticulate::use_condaenv("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
 } else {
+    Sys.setenv(RETICULATE_PYTHON = "/home/rstudio/.local/share/r-miniconda/envs/day1_RNA_velocity/bin/python3")
+    
     # Sys.setenv(RETICULATE_PYTHON = "/Users/stadler/miniforge3/bin/python3")
 
     # use_python("~/miniforge3/bin/python")
