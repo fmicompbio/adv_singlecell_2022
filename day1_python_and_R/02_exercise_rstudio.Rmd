@@ -15,6 +15,17 @@ editor_options:
   chunk_output_type: console
 ---
 
+# Preparing the working environment
+
+If you have not already done that, you may use the `Terminal` panel of
+RStudio to access bash and use `git` to checkout the course repository into
+your working directory:
+
+```{bash, eval = FALSE}
+cd ~/workdir
+git clone https://github.com/fmicompbio/adv_singlecell_2022.git
+```
+
 
 # Introduction
 
@@ -172,20 +183,13 @@ If you run `py_config()` and Python bindings have not been initialized yet, they
 will be initialized by that function:
 ```{r selectPython, class.source="rchunk"}
 # set python env (only needed on server xenon6)
-if (grepl(".fmi.ch$", Sys.info()["nodename"])) {
-    Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/lib/python3.9/site-packages/")
-    reticulate::use_condaenv("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
+if (file.exists("FMI_python_config.R")) {
+    # setup for FMI server
+    source("FMI_python_config.R")
 } else {
-    Sys.setenv(RETICULATE_PYTHON = "/home/rstudio/.local/share/r-miniconda/envs/day1_RNA_velocity/bin/python3")
-    
-    # Sys.setenv(RETICULATE_PYTHON = "/Users/stadler/miniforge3/bin/python3")
-
-    # use_python("~/miniforge3/bin/python")
-    # use_condaenv("base")
-
-    # https://github.com/rstudio/reticulate/issues/456#issuecomment-1046045432
-    # Sys.setenv(OPENBLAS = "/Users/stadler/miniforge3/lib/libblas.dylib")
-    # Sys.setenv(OMP_NUM_THREADS = "4")
+    # setup for cloud VM
+    Sys.setenv(PYTHONPATH = "/home/rstudio/.local/share/r-miniconda/envs/day1_python_and_R/lib/python3.8/site-packages/")
+    reticulate::use_condaenv("day1_RNA_velocity", required = TRUE)
 }
 
 # print config (will initialize Python bindings)
@@ -307,6 +311,7 @@ np.mean(y)
 ```{python, class.source="pythonchunk"}
 def pymean(z):
     return np.mean(z)
+
 ```
 ```{r, class.source="rchunk"}
 py$pymean(x)
@@ -327,7 +332,7 @@ class(iris)
 ```
 ```{python, class.source="pythonchunk"}
 pyiris = r.iris
-# type(pyiris)
+type(pyiris)
 pyiris.columns
 ```
 
@@ -383,8 +388,6 @@ ggplot(iris, aes(x=Sepal.Length, y=Petal.Length, colour=Species)) +
 
 ```{python, class.source="pythonchunk", fig.width=4.5, fig.height=4.5}
 import matplotlib
-matplotlib.use('Agg', force = True)
-
 import matplotlib.pyplot as plt
 
 groups = pyiris.groupby('Species')
