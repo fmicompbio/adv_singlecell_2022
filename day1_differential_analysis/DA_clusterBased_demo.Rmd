@@ -1,0 +1,115 @@
+---
+title: "Cluster-based Differential Abundance analysis"
+author: "Pierre-Luc"
+date: "4/11/2022"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(SingleCellExperiment) # core sc infrastructures
+  library(edgeR) # differential expression analysis
+  library(ANCOMBC) # differential abundance analysis with composition bias
+  library(phyloseq) # microbiome data structure, we'll need it for ANCOMBC
+  library(ggplot2) # for plotting
+  library(patchwork) # for combining plots
+  library(ComplexHeatmap) # for plotting heatmaps
+})
+```
+
+# Differential abundance analysis
+
+## Using edgeR & co
+
+The simplest approach is to use established count-based analysis methods (e.g. edgeR \& co).
+
+We first load the data and extract the cluster counts per sample:
+
+```{r}
+#sce <- readRDS("/data/day1_differential_analysi/DA_example1.SCE.rds")
+sce <- readRDS("../../DA_example1.SCE.rds")
+# we build a SE of cluster abundances
+cluster_abundances <- reshape2::dcast(as.data.frame(colData(sce)), cluster_id~sample_id)
+row.names(cluster_abundances) <- cluster_abundances$cluster_id
+cla <- SummarizedExperiment(list(counts=as.matrix(cluster_abundances[,-1])))
+cla$group <- factor(ifelse(grepl("LPS",colnames(cla)),"LPS","Control"))
+# we calculate proportions
+assays(cla)$proportion <- 100*t(t(assay(cla))/colSums(assay(cla)))
+```
+
+We plot the proportions across group:
+
+```{r}
+Heatmap(assays(cla)$proportion, column_split=cla$group, name="%")
+# scaled proportion (to view smaller populations)
+Heatmap(t(scale(t(assays(cla)$proportion))), column_split=cla$group, name="scaled %")
+
+# quick fn to compare the proportions across groups
+plotProps <- function(cla, assay="proportion"){
+  # get the mean proportions per group
+  m <- sapply(split(seq_len(ncol(cla)), cla$group), FUN=function(i){
+    rowMeans(assays(cla)[[assay]][,i])
+  })
+  m <- cbind(cluster_id=row.names(m), as.data.frame(m))
+  ggplot(m, aes(Control, LPS, colour=cluster_id)) + geom_abline() + 
+    geom_point(show.legend=FALSE) + 
+    ggtitle(assay) + scale_x_log10() + scale_y_log10()
+}
+plotProps(cla)
+
+# normalization using edgeR
+dds <- DGEList(assay(cla), group=cla$group)
+dds <- calcNormFactors(dds)
+assays(cla)$normalized <- cpm(dds)/10000 # from CPM to normalized %
+# we compare the proportions
+plotProps(cla) | plotProps(cla, "normalized")
+```
+
+The differential abundance analysis:
+
+```{r}
+dds <- estimateDisp(dds)
+(out1 <- as.data.frame(topTags(exactTest(dds), Inf)))
+```
+
+
+```{r}
+# we plot the proportions for the top population
+d <- cbind(as.data.frame(colData(cla)), t(assays(cla)$normalized))
+ggplot(d, aes(group, Microglia, fill=group)) + geom_violin() + stat_summary()
+```
+
+
+## Using explicit composition approaches
+
+[ANCOMBC](https://bioconductor.org/packages/release/bioc/html/ANCOMBC.html) was
+designed for microbiome data, and explictly models the effect of changes on some
+subpopulations on the observed frequencies of others.
+
+```{r}
+# we first need to build the object as ANCOMBC expects it:
+ps <- phyloseq(otu_table(assay(cla), taxa_are_rows=TRUE),
+               sample_data(as.data.frame(colData(cla))))
+# we run the method:
+out2 <- ancombc(ps, formula="group")
+# look at the results:
+(out2 <- setNames(do.call(cbind, out2$res), names(out2$res)))
+```
+
+## Comparing the two
+
+```{r, fig.width=8, fig.height=4}
+out1$ANCOMBC.pval <- out2[row.names(out1),"p_val"]
+out1$ANCOMBC.beta <- out2[row.names(out1),"beta"]
+p1 <- ggplot(out1, aes(logFC, ANCOMBC.beta, size=-log10(ANCOMBC.pval))) + 
+  geom_abline(slope=1, colour="grey") + geom_point() +
+  labs(x="edgeR logFC", y="ANCOMBC beta", size="log10(pval)")
+p2 <- ggplot(out1, aes((PValue), (ANCOMBC.pval))) + scale_x_log10() + scale_y_log10() +
+  geom_abline(slope=1, colour="grey") + geom_point() +
+  labs(x="edgeR PValue", y="ANCOMBC PValue")
+p1 | p2
+```
+
+
+See [DA_exercise.Rmd](DA_exercise.Rmd) !
+
