@@ -50,11 +50,8 @@ First we need to load the `keras` library:
 
 ```r
 suppressPackageStartupMessages({
-system("pipenv --python 3.8")
-venv <- system("pipenv --venv", inter = TRUE)
-reticulate::use_virtualenv(venv, required = TRUE)
+reticulate::use_condaenv("day4_deep_generative_networks")
 library(tensorflow)
-install_tensorflow(version= '2.2.0-gpu')
 library(keras)
 })
 ```
