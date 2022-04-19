@@ -45,6 +45,7 @@ sce <- prepSCE(sce, kid="cluster_id", sid="sample_id", gid="group_id")
 # compute pseudobulk (sum of counts) by cluster-sample
 pb <- aggregateData(sce, assay = "counts", 
                     by=c("cluster_id", "sample_id"), fun="sum")
+saveRDS(pb, file="DS_pb.rds")
 ```
 
 We can then also generated a pseudo-bulk level MDS plot:
@@ -226,8 +227,10 @@ sceEC <- sce[,sce$cluster_id=="Endothelial"]
 # testing just the top 500 genes
 sceEC <- sceEC[head(order(-rowSums(assay(sceEC))), 500),]
 
+# same design definition as other methods:
 mm <- model.matrix(~group_id, data=as.data.frame(colData(sceEC)))
-res2 <- nebula(counts(sceEC), id=sceEC$sample_id, pred=mm)
+# running the analyses:
+res2 <- nebula( counts(sceEC), id=sceEC$sample_id, pred=mm)
 head(res2 <- res2$summary)
 ```
 
@@ -282,8 +285,11 @@ the `distinct` packages is designed to test differences between such distributio
 We'll try it on the cluster we looked at previously:
 
 ```{r}
+# same design definition as other methods:
 mm <- model.matrix(~group_id, data=as.data.frame(colData(aggregateData(sceEC))))
+# run the test (column_to_test refers to the column of `mm`)
 resDi <- distinct_test(x=sceEC, design=mm,  column_to_test=2, n_cores=2)
+
 resDi <- resDi[order(resDi$p_val),]
 head(resDi)
 ```
