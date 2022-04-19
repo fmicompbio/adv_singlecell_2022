@@ -1,7 +1,7 @@
 ---
 title: "Combining R & Python in RStudio"
 author: "Michael Stadler"
-date: "May 27, 2020"
+date: "April 19, 2022"
 output:
   html_document:
     css: styles.css
@@ -332,7 +332,7 @@ class(iris)
 ```
 ```{python, class.source="pythonchunk"}
 pyiris = r.iris
-type(pyiris)
+# type(pyiris)
 pyiris.columns
 ```
 
