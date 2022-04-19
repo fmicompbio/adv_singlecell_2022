@@ -9,6 +9,8 @@ output: html_document
 suppressPackageStartupMessages({
   library(SingleCellExperiment) # core sc infrastructures
   library(edgeR) # differential expression analysis
+  library(ANCOMBC) # differential abundance analysis with composition bias
+  library(phyloseq) # microbiome data structure, we'll need it for ANCOMBC
   library(ggplot2) # for plotting
   library(patchwork) # for combining plots
   library(ComplexHeatmap) # for plotting heatmaps
