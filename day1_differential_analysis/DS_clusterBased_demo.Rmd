@@ -1,0 +1,301 @@
+---
+title: "Cluster-based differential state analysis"
+author: "Pierre-Luc"
+date: "4/11/2022"
+output: html_document
+---
+
+As main example, we will use a dataset of 4 vs 4 scRNAseq samples of the mouse cortex exposed to LPS (an endotoxin mimicking the inflammatory response to pathogens) or to a vehicle control.
+The data was published in [Crowell et al., 2020](https://doi.org/10.1038/s41467-020-19894-4), and we will use the data (clustering & annotation) from that analysis (with some extra simplification). The code for this analysis is available [here](http://htmlpreview.github.io/?https://github.com/HelenaLC/muscat-comparison/blob/master/LPS/docs/index.html). Another example pipeline for these steps is available [here](https://github.com/sta426hs2021/material/blob/main/week13-13dec2021/workflow.Rmd).
+
+We will use this example to showcase cluster-based differential-state (DS) analysis.
+
+# Loading the necessary packages
+
+```{r}
+suppressPackageStartupMessages({
+  library(SingleCellExperiment) # core sc infrastructures
+  library(scuttle) # lots of sc-related functions
+  library(muscat) # wrappers handle pseudo-bulk DS (also does simulation)
+  library(sechm) # simplifies making heatmaps from SE-like objects
+  library(edgeR) # differential expression analysis
+  library(nebula) # for running cell-level nbinom models with random effects
+  library(distinct) # for finding differences other than in mean
+  library(treeclimbR) # for selecting resolutions on hierarchcial hypotheses
+  library(ggplot2) # for plotting
+  library(UpSetR) # for plotting overlaps
+  library(patchwork) # for combining plots
+  library(BiocParallel) # for multithreading
+})
+```
+
+
+# Pseudo-bulk differential state analysis using muscat
+
+```{r, prep}
+sce <- readRDS("/data/day1_differential_analysi/DS_sce.rds")
+sce <- scuttle::logNormCounts(sce)
+# prepare for muscat:
+sce <- prepSCE(sce, kid="cluster_id", sid="sample_id", gid="group_id")
+```
+
+## Pseudo-bulk aggregation
+
+```{r agg}
+# compute pseudobulk (sum of counts) by cluster-sample
+pb <- aggregateData(sce, assay = "counts", 
+                    by=c("cluster_id", "sample_id"), fun="sum")
+```
+
+We can then also generated a pseudo-bulk level MDS plot:
+
+```{r pb, fig.width = 6}
+pbMDS(pb)
+```
+
+## Per-cluster DS analysis
+
+Runs edgeR on each cluster:
+
+```{r pbDS}
+res <- pbDS(pb, method="edgeR")
+# the results are a list of cluster-based results:
+head(res$table$LPS$Astrocytes)
+```
+
+
+```{r ds_view}
+# we can aggregate them to one table:
+tbl <- resDS(sce, res, bind = "col")
+head(tbl)
+
+# filter & sort
+sig <- tbl[abs(tbl$logFC__LPS)>1 & tbl$p_adj.loc__LPS < 0.05, ]
+sig <- sig[order(sig$p_adj.loc),]
+head(sig)
+
+# no. of DS genes per cluster
+table(sig$cluster_id)
+
+# top hits per cluster
+lapply(split(sig$gene, sig$cluster_id), n=3, FUN=head)
+```
+
+## Pseudobulk-level heatmap
+
+```{r fig.width = 8, fig.height = 5}
+# top-20 in single cluster
+pbHeatmap(sce, res, k = "Astrocytes", top_n = 10)
+
+# across clusters:
+pbHeatmap(sce, res, k=c("Astrocytes","Endothelial","Microglia"), top_n = 5)
+```
+
+
+
+# Comparing between cell types
+
+A first comparison of differential state patterns that are shared between, or specific to cell types, can be obtained by overlapping the differentially-expressed genes (DEGs):
+
+```{r fig.width = 8, fig.height = 5}
+degs <- split(sig$gene, sig$cluster_id)
+# from the UpSetR package:
+upset(fromList(degs))
+```
+
+This suggests that many genes change specifically in one cell type.
+To see that overlaps are misleading, we'll plot the logFC of genes across cell types: logFCs:
+
+```{r}
+# we first flatten the PB object to have all cell types on the same assay
+pbf <- pbFlatten(pb)
+pbf <- pbf[,order(pbf$cluster_id, pbf$group_id)]
+# we then get the cluster means in controls, in order to calculate per-cell-type logFCs:
+w <- which(pbf$group_id=="WT")
+clControlMeans <- sapply(split(w, pbf$cluster_id[w]), FUN=function(x){
+  rowMeans(assays(pbf)$logcpm[,x,drop=FALSE])
+})
+# calculate logFCs
+assays(pbf)$logFC <- assays(pbf)$logcpm - clControlMeans[,pbf$cluster_id]
+```
+
+Let's then plot the pattern across cells types of genes that are only found significant in Endothelial Cells (EC):
+
+```{r, fig.width=10, fig.height=5}
+# get so-called EC-specific DEGs:
+ECspecific <- setdiff(degs$Endothelial, unlist(degs[names(degs)!="Endothelial"]))
+# plot their foldchange across celltypes:
+sechm(pbf, ECspecific, assayName="logFC", gaps_at="cluster_id", top_annotation=c("group_id","n_cells"),
+      row_title="Endothelial-specific", column_title_gp=grid::gpar(fontsize=9))
+```
+
+So we see that a lot of DEGs that are supposedly specific to endothelial cells react in very much the same way in other cell types.
+
+The heatmap gives us an idea about which genes are truly specific, but how could we narrow it down using a statistically grounded approach?
+
+
+## Hierarchical approach using treeClimbr
+
+treeClimbr uses hierarchically-organized hypotheses (in this case, the differential expression of genes upon LPS at different clustering resolutions) to identify the where a certain pattern occurs. In this case, it would answer the question 'Is gene X differentially expressed in LPS in this specific cluster, or in all excitatory neurons, or perhaps even in all cells?'
+
+To use it, we first need our cell types to be organized in a tree:
+
+```{r}
+# here we will build the cluster tree based on the average distance (on the PCA space)
+# between cluster means:
+cme <- scuttle::sumCountsAcrossCells(t(reducedDim(sce, "PCA")[,1:10]),
+                                     sce$cluster_id, average=TRUE)
+h <- hclust(dist(t(assay(cme))))
+tree <- ape::as.phylo(h)
+plot(tree)
+```
+
+The tree kind of makes sense. There would be other ways to build it (and we'd normally use more fine-grained clustering),
+what's important is that no information between the conditions to be tested is used in the building of the tree.
+
+We next build a TreeSummarizedExperiment and run treeclimbR:
+
+```{r}
+tse <- TreeSummarizedExperiment(assays(sce), colData=colData(sce), colTree=tree,
+                                colNodeLab=as.character(sce$cluster_id))
+# for the sake of speed, here we limit ourselves to the top 500 genes
+tse <- tse[head(order(-rowSums(assay(tse))),500),]
+
+# aggregate per node
+d_se <- aggDS(TSE=tse)
+
+# run node-level DS
+dsres <- runDS( SE=d_se, tree=colTree(tse) )
+out <- nodeResult(dsres, n=Inf, type="DS")
+
+# split by gene, and evaluate candidate nodes for each gene
+out_list <- split(out, f=out$feature)
+cand_list <- bplapply(seq_along(out_list), BPPARAM=MulticoreParam(4),
+                      FUN=function(x)
+                        getCand(tree = colTree(tse), 
+                                score_data = out_list[[x]], 
+                                node_column = "node", 
+                                p_column = "PValue", 
+                                sign_column = "logFC")$candidate_list
+                      )
+
+b <- evalCand(tree=tree, type="multiple", levels=cand_list, score_data=out_list, 
+              node_column="node", p_column="PValue", sign_column="logFC", 
+              feature_column="feature")
+
+# extract significant nodes
+o <- b$output[b$output$signal.node,]
+
+# extract the cluster names composing the different nodes
+dict <- tree$tip.label
+inodes <- seq(from=length(dict)+1L, to=length(dict)+tree$Nnode)
+dict <- c(dict, as.character(sapply(findDescendant(tree, inodes),
+                                    FUN=function(x){
+  x <- x[x<=length(dict)]
+  paste(sort(dict[x]),collapse=", ")
+})))
+o$clusters <- as.factor(dict)[o$node]
+
+# results
+head(o)
+
+# nodes at which there are the most DEGs:
+head(sort(table(o$clusters), decreasing=TRUE),10)
+```
+
+This tells use not only which genes are differentially-expressed, but in which clades of the tree they are.
+(See `?TreeHeatmap` for plotting data along with the tree)
+
+
+# Cell-level DS analysis
+
+The above methods all work at the pseudo-bulk level.
+Our [benchmarks](https://doi.org/10.1038/s41467-020-19894-4) indicate that this is not only faster, 
+but as good as cell-level methods.
+Nevertheless, one sometimes desires to perform cell-level analysis, for instance to take a covariate into account.
+When this is done, it is critical that the nested nature of the replicates (i.e. the fact that 
+cells are not independent from each other, but share sample-level effects) are taken into account.
+The most efficient way of doing so is through the [nebula package](https://doi.org/10.1038/s42003-021-02146-6),
+which fits negative binomials with random effect terms for the samples.
+
+With the exception of the random term, it works with the same model formula we're used to:
+
+```{r}
+# we test it on a single cluster
+sceEC <- sce[,sce$cluster_id=="Endothelial"]
+# testing just the top 500 genes
+sceEC <- sceEC[head(order(-rowSums(assay(sceEC))), 500),]
+
+mm <- model.matrix(~group_id, data=as.data.frame(colData(sceEC)))
+res2 <- nebula(counts(sceEC), id=sceEC$sample_id, pred=mm)
+head(res2 <- res2$summary)
+```
+
+Let's now compare the pseudobulk analysis with the cell-level one:
+
+```{r}
+m <- merge(res2, res$table$LPS$Endothelial, by="gene")
+ggplot(m, aes(-log10(p_group_idLPS), -log10(p_val))) + 
+  geom_abline(slope=1, colour="grey") + 
+  geom_hline(yintercept=-log10(0.05), colour="grey", linetype="dashed") + 
+  geom_vline(xintercept=-log10(0.05), colour="grey", linetype="dashed") + 
+  geom_point() + geom_density_2d() + 
+  labs(x="-log10(p-value) mixed NB models (nebula)", y="-log10(p-value) pseudobulk (edgeR)")
+```
+
+We see that both sets of p-values are well associated, and very few genes that would be significant using 
+the pseudo-bulk method fail to do so using the mixed models; `nebula` however MM has many smaller p-values.
+We haven't yet compared the two in a rigorous benchmark.
+
+We could run it with a covariate in the following fashion:
+
+```{r}
+mm <- model.matrix(~pct_counts_Mt+group_id, data=as.data.frame(colData(sceEC)))
+res2 <- nebula(counts(sceEC), id=sceEC$sample_id, pred=mm)
+head(res2 <- res2$summary)
+```
+
+
+We could run across all cell types using something like :
+
+```{r, eval=FALSE}
+mm.res <- bplapply(split(seq_len(ncol(sce)), sce$cluster_id), BPPARAM=MulticoreParam(4),
+                   FUN=function(x){
+  sce2 <- sce[,x]
+  sce2 <- sce2[head(order(-rowSums(counts(sce2))),1000),]
+  mm <- model.matrix(~group_id, data=as.data.frame(colData(sce2)))
+  nebula(counts(sce2), id=sce2$sample_id, pred=mm)$summary
+})
+```
+
+
+
+
+# Differences other than in means
+
+All the methods presented here look for differences in means between the groups.
+They can however differ in other respects, such as differential variability, or bimodality vs unimodality (see 
+[toy examples](https://www.biorxiv.org/content/biorxiv/early/2022/04/04/2020.11.24.394213/F1.large.jpg)).
+Reasoning that all these differences result in different cumulative distribution functions,
+the `distinct` packages is designed to test differences between such distributions.
+
+We'll try it on the cluster we looked at previously:
+
+```{r}
+mm <- model.matrix(~group_id, data=as.data.frame(colData(aggregateData(sceEC))))
+resDi <- distinct_test(x=sceEC, design=mm,  column_to_test=2, n_cores=2)
+resDi <- resDi[order(resDi$p_val),]
+head(resDi)
+```
+
+To see if we can identify differences that were not caught by previous methods, let's look at DEGs that are only found by this method:
+
+```{r}
+# find genes that were not found by the PB DS analysis:
+newDegs <- setdiff(resDi$gene[resDi$p_adj.loc<0.05], degs$Endothelial)
+sechm(sceEC, degs$Endothelial, assayName="logcounts", do.scale=TRUE, gaps_at="group_id")
+```
+
+They still look like differences in means, which were most likely just below the FDR threshold with other methods...
+In practice, we don't often find relevant differences that do not result in different means,
+but it's nevertheless good to at least have some means of looking for them!
