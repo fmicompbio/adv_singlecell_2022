@@ -1,8 +1,6 @@
 FROM rocker/rstudio:4.1.2
 
-RUN sudo apt-get update
-
-RUN sudo apt-get install -y \
+RUN sudo apt-get update && apt-get install -y \
 libxt6 \
 libgl1-mesa-glx \
 libcurl4-openssl-dev \
@@ -26,6 +24,7 @@ RUN R -e "install.packages('reticulate')"
 RUN R -e "reticulate::install_miniconda()"
 RUN $CONDA/conda init bash
 COPY .profile /home/rstudio/
+RUN mkdir /home/rstudio/workdir && chown 1000:1000 /home/rstudio/workdir
 
 ENV PART=day1_python_and_R
 COPY $PART/R_requirements.R .
@@ -63,4 +62,8 @@ ENV PART=day3_spatial_transcriptomics
 COPY $PART/R_requirements.R .
 RUN Rscript R_requirements.R
 
+RUN R -e "install.packages('markdown')"
+
 USER root
+
+RUN rm /home/rstudio/R_requirements.R && rm /home/rstudio/environment.yml
