@@ -2,7 +2,8 @@
 
 ## global variables (edit in this section) -------------------------------------
 pkgs <- c("miloR","muscat","devtools", "distinct",
-          "condiments", "nebula", "sechm"
+          "condiments", "nebula", "sechm",
+          "ANCOMBC", "phyloseq"
           )
 
 devtools::install_github("dynverse/dyntoy")
