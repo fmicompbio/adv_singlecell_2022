@@ -35,6 +35,7 @@ sudo rm -r ./home
 cd ~
 DATADIR=/data/day3_spatial_transcriptomics
 wget https://hmgubox2.helmholtz-muenchen.de/index.php/s/LiPatgZBTmkxZEn/download/advomics_data_spatial.tar.gz
+sudo mkdir -p $DATADIR
 sudo mv advomics_data_spatial.tar.gz $DATADIR
 cd $DATADIR 
 sudo tar -xvf advomics_data_spatial.tar.gz
