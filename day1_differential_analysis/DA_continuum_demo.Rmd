@@ -14,18 +14,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 suppressPackageStartupMessages({
+  library(ggplot2)
   library(miloR)
   library(SingleCellExperiment)
   library(dplyr)
   library(tibble)
-  library(patchwork)
   library(slingshot)
   library(scater)
   library(scran)
   library(bluster)
-  library(grDevices)
-  library(RColorBrewer)
   library(reshape2)
+  library(BiocParallel)
+  library(distinct)
+  library(cowplot)
 })
 
 ```
@@ -33,7 +34,7 @@ suppressPackageStartupMessages({
 ## Read in data, quick peek at low dim projection
 
 ```{r}
-sce <- readRDS("sce_continuum_demo_public.rds")
+sce <- readRDS("/data/day1_differential_analysis/sce_continuum_demo_public.rds")
 plotUMAP(sce, colour_by="condition", shape_by="sample") +
   geom_point(size=3, aes(colour=colour_by, shape=shape_by))
 ```
@@ -42,7 +43,6 @@ plotUMAP(sce, colour_by="condition", shape_by="sample") +
 ## Run miloR analysis
 
 ```{r}
-
 # general flow taken from:
 # https://www.bioconductor.org/packages/release/bioc/vignettes/miloR/inst/doc/milo_demo.html
 
@@ -51,10 +51,11 @@ milo <- Milo(sce)
 reducedDim(milo, "UMAP") <- reducedDim(sce, "UMAP")
 
 
-# using parameters from vignette, build graph
-milo <- buildGraph(milo, k = 10, d = 30)
-milo <- makeNhoods(milo, k=10, d=30, 
-                       prop=0.1, refined=TRUE)
+# using parameters from vignette, build graph (see scran::buildKNNGraph for arguments)
+milo <- buildGraph(milo, k=10, d=30)
+# define neighborhoods and select median nodes/vertices 
+milo <- makeNhoods(milo, k=10, d=30)
+# check the number of cells belonging to a neighborhood
 plotNhoodSizeHist(milo) 
 
 # count by sample for each neighbourhood
@@ -70,17 +71,15 @@ head(nhcnts[,sort(colnames(nhcnts))])
 
 
 # collect metadata, make design matrix
-md <- colData(milo) %>% data.frame() 
-md <- md[,c("sample","condition")] %>% unique
-rownames(md) <- NULL
-
-design <- md %>% column_to_rownames("sample")
+md <- as.data.frame(colData(milo))
+md <- unique(md[,c("sample","condition")])
+rownames(md) <- md$sample
 
 # check
-all( colnames(nhcnts) == rownames(design) )
+all( colnames(nhcnts) == rownames(md) )
 
 # doing tests for each neighbourhood
-milo_res <- testNhoods(milo, design=~condition, design.df=design)
+milo_res <- testNhoods(milo, design=~condition, design.df=md)
 
 # peek at results
 milo_res %>% arrange(SpatialFDR) %>% head(20)
@@ -94,14 +93,14 @@ plotNhoodGraphDA(milo, milo_res)
 
 
 
-## Run `slingshot` analysis
+## Differential abundance of pseudotimes across trajectories
+
+### Run `slingshot` analysis
 
 ```{r}
+sce$cluster <- clusterCells(sce, use.dimred="PCA", BLUSPARAM=NNGraphParam(k=3))
 
-clusters <- clusterCells(sce, use.dimred="PCA", BLUSPARAM=NNGraphParam(k=3))
-colData(sce)$cluster <- clusters
-
-df <- data.frame(reducedDim(sce, "UMAP")[,1:2], cluster=clusters)
+df <- data.frame(reducedDim(sce, "UMAP")[,1:2], cluster=sce$cluster)
 df_agg <- df %>% group_by(cluster) %>% summarise_all(mean)
 
 
@@ -110,34 +109,29 @@ plotUMAP(sce, colour_by="cluster") +
   geom_label(data=df_agg, aes(x=X1, y=X2, label=cluster))
   
 
-sling <- slingshot(sce, clusterLabels = 'cluster',
-                   reducedDim = 'PCA')
-
-sling_ds <- SlingshotDataSet(sling)
-
-# compare the inferred lineages to the low dim projection
-sling_ds
-
+sling <- slingshot(sce, clusterLabels = 'cluster', reducedDim = 'PCA')
 
 # quick look on the trajectory inference
-# bit clunky plotting (probably a better way)
-lineages <- c("slingPseudotime_1", "slingPseudotime_2", 
-              "slingPseudotime_3")
-colors <- colorRampPalette(brewer.pal(11,'Spectral')[-6])(100)
-cd <- colData(sling)
+curves <- slingCurves(sling, as.df=TRUE)
+p1 <- plotReducedDim(sling, "PCA") + 
+  geom_path(aes(x=PC1, y=PC2, group=Lineage, colour=factor(Lineage)),
+            data=curves, lwd=1.5)
 
-par(mfrow=c(1,3))
-for(lin in lineages) {
-  plotcol <- colors[cut(cd[,lin], breaks=100)]
-  plot(reducedDims(sling)$PCA, col = plotcol, pch=16, asp = 1, main=lin)
-  lines(SlingshotDataSet(sling), lwd=2, col=c("blue","grey","black"))
-}
+ps <- lapply(1:3, FUN=function(x){
+  plotReducedDim(sling, "PCA", colour_by=paste0("slingPseudotime_",x)) +
+    geom_path(data=curves[curves$Lineage==x,], aes(x=PC1,y=PC2), lwd=1.5)
+})
+plot_grid(plotlist=c(list(p1),ps))
+```
 
+### Visualize pseudotime relative abundances
 
+```{r}
 # transformations of inferred trajectory data
 md <- slingPseudotime(sling) %>%
   as.data.frame() %>%
   mutate(cell_id = sling$cell_id,
+         cluster = sling$cluster,
          condition = sling$condition,
          sample = sling$sample)
 head(md, 3)
@@ -145,22 +139,36 @@ head(md, 3)
 md_melt <- melt(md)
 head(md_melt, 3)
 
-df <- md %>% select(contains("Lineage")) %>%
-  mutate(cluster=clusters)
-head(df, 3)
-df_agg <- df %>% group_by(cluster) %>% summarise_all(mean, na.rm=TRUE)
-head(df_agg, 3)
-
+# get cluster positions on the lineages
+df_agg <- aggregate(md[,1:3], by=md[,"cluster",drop=FALSE], na.rm=TRUE, FUN=mean)
 
 lin <- "Lineage2"
 ggplot(md_melt %>% filter(variable==lin)) +
   geom_density(aes(x = value, fill = condition, group = sample), alpha = .5) +
   geom_label(data=df_agg, aes(Lineage2, y=0, label=cluster))
-
-
-# how to do formal testing -- distinct?
-
 ```
 
+### Test for differences using distinct
 
+```{r}
+# build a pseudotime SE
+sse <- SummarizedExperiment(list(pseudotime=t(slingPseudotime(sling))),
+                            colData=colData(sling)[,c("sample","condition")])
+sse$dummy <- 1L # `distinct` will need a cluster column
+
+# build a (sample-level) model matrix
+df <- unique(colData(sse))
+row.names(df) <- df$sample
+mm <- model.matrix(~condition, data=df)
+
+# run distinct for each trajectory:
+pvals <- bplapply(setNames(row.names(sse),row.names(sse)),
+                BPPARAM=MulticoreParam(3), FUN=function(x){
+  # we have to double the row to avoid an error in distinct
+  sse2 <- sse[rep(x,2),!is.na(assay(sse)[x,])]
+  distinct_test(sse2, name_assays_expression="pseudotime",
+                name_cluster="dummy", name_sample="sample", design=mm)[1,3]
+})
+pvals
+```
 
