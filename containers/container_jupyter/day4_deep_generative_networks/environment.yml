@@ -16,13 +16,12 @@ dependencies:
     - pydotplus
     - sklearn
     - scanpy
-    - os
     - gseapy
     - seaborn
     - anndata
     - statsmodels
-    - scvi
+    - scvi-tools
     - numba
-    - pytables
+    - tables
     - leidenalg
-    - skmisc
+    - scikit-misc
