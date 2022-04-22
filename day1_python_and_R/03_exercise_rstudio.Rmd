@@ -1,5 +1,5 @@
 ---
-title: "Combining R & Python in RStudio"
+title: "Combining R & Python in RStudio - a guided tour"
 author: "Michael Stadler"
 date: "April 19, 2022"
 output:
@@ -30,20 +30,21 @@ git clone https://github.com/fmicompbio/adv_singlecell_2022.git
 # Introduction
 
 In this exercise, we will work with RStudio as an editor and use its support
-for code from different laguages.
+for code from different languages.
 
 ## Useful links
 
 - "R Markdown: The Definitive Guide" (free online book): https://bookdown.org/yihui/rmarkdown/
 - `knitr` chunk options: https://yihui.org/knitr/options/
 - `reticulate` documenation (R interface to python): https://rstudio.github.io/reticulate/
-- `reticulate` and sparse matrices: https://rstudio.github.io/reticulate/articles/calling_python.html#sparse-matrices-1
+- `reticulate` and sparse matrices: https://rstudio.github.io/reticulate/articles/calling_python.html#sparse-matrices
 - `reticulate` webinar: https://resources.rstudio.com/webinars/r-python-in-rstudio-1-2-with-reticulate
+- "Debunking the R vs. Python Myth" webinar: https://www.rstudio.com/resources/webinars/debunking-the-r-vs-python-myth/
 - PyCon.DE 2018: "Reticulate: R Interface To Python" (presentation by Jens Bruno Wittek): https://www.youtube.com/watch?v=EJxQSa9lwfM
 - Tutorial for using Python in RStudio: https://docs.rstudio.com/tutorials/user/using-python-with-rstudio-and-reticulate/
 - `SciPy` documenation: https://docs.scipy.org/doc/scipy/reference/
 - `pandas.DataFrame` documentation: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html
-- `matplotlib` documentation: https://matplotlib.org/contents.html
+- `matplotlib` documentation: https://matplotlib.org/
 - `ggplot2` documentation: https://ggplot2.tidyverse.org/
 
 
@@ -57,7 +58,7 @@ can be run independently and the output is captured and visualized already in th
 editor interface. However, as pointed out during the introduction, this creates
 the risk of running things out of order and creating an inconsistent state.
 
-I will demonstrate this issue using the two code cunks below:
+I will demonstrate this issue using the two code chunks below:
 ```{r}
 x <- 2
 ```
@@ -86,7 +87,7 @@ For code chunks, multiple languages are supported by RStudio (see
 [link](https://bookdown.org/yihui/rmarkdown/language-engines.html) for a list).
 Code chunks are delineated by three backticks (<span class="pre">```</span>), and
 the language is defined in the header:  
-![](figures/rstudio_code-chunks.png){width=320px}
+![](figures/rstudio_code-chunks.png){width=396px}
 
 In addition to the language, additional options that apply to that chunk can
 be defined in the header, such as:  
@@ -172,14 +173,16 @@ removed, from within R using the following functions:
 - *Virtual environments*: `virtualenv_create()`, `virtualenv_install()`, `virtualenv_remove()`
 - *active environment* (or if unset, the `r-reticulate` environment): `py_install()`
 
-For this course, the virtual machine has `RETICULATE_PYTHON` set, and all required
-python packages are already installed, so that you don't have to do anything.
-On my local server, which I use to write this documenation, I however have to
-select a particular Python, which I do by setting `RETICULATE_PYTHON` and
-library path (`PYTHONPATH`).
+For this course, the virtual machine has all required python packages already
+installed into the `conda` environment `"day1_RNA_velocity"`. We will select
+this using `use_condaenv()` below.
 
-Finally, we can use `py_config()` to see which Python `reticulate` is using.
-If you run `py_config()` and Python bindings have not been initialized yet, they
+On my local server, which I use to write this documentation, I am using a
+different environment that is configured in a local file (`FMI_python_config.R`).
+
+Finally, after we have selected a python environment or path using one of the
+above mechanisms, we can use `py_config()` to connect to it. If you run
+`py_config()` and Python bindings have not been initialized yet, they
 will be initialized by that function:
 ```{r selectPython, class.source="rchunk"}
 # set python env (only needed on server xenon6)
