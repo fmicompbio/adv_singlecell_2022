@@ -28,37 +28,35 @@ options(width = 80)
 
 
 ```{r libload, eval=FALSE}
-suppressPackageStartupMessages({
-system("pipenv --python 3.8")
-venv <- system("pipenv --venv", inter = TRUE)
-reticulate::use_virtualenv(venv, required = TRUE)
+reticulate::use_condaenv("day4_deep_generative_networks")
 library(tensorflow)
-install_tensorflow(version= '2.4.0')
 library(keras)
 library(Matrix)
 library(SingleCellExperiment)
 library(Rtsne)
 library(rsvd)
 library(RColorBrewer)
+K <- backend() # manual add-on
 })
 ```
 
 
 ```{r, include=FALSE}
 #Specific setup for xenon6 execution :
-#reticulate::use_virtualenv("/tungstenfs/groups/gbioinfo/sharedSoft/virtualenvs/r-4.1-bioc-3.13-reticulate-keras-2.4.0-tensorflow-2.4.0-gpu/")
+reticulate::use_virtualenv("/tungstenfs/groups/gbioinfo/sharedSoft/virtualenvs/r-4.1-bioc-3.13-reticulate-keras-2.4.0-tensorflow-2.4.0-gpu/")
 # GPU execution
-#Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
-#ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
+Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
+ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
 reticulate::py_config()
 library(keras)
-K <- backend() # manual add-on
 library(tensorflow)
 library(Matrix)
 library(SingleCellExperiment)
 library(Rtsne)
 library(rsvd)
 library(RColorBrewer)
+K <- backend() # manual add-on
+
 ```
 
 
@@ -84,9 +82,9 @@ composition of the dataset:
 ## Download the data and set row names to gene symbols whenever possible
 sce <- readRDS(gzcon(url("https://ppapasaikas.github.io/SC_datasets/Data/SCE_MammaryGland.rds?raw=true")))
 #Subsample cells to speed up processing and, most importantly, later-on model training:
-#set.seed(42)
-#n=4000
-#sce <- sce[, sample(1:ncol(sce), n )  ]
+set.seed(42)
+n=4000
+sce <- sce[, sample(1:ncol(sce), n )  ]
 ## Dataset composition per cell type and study:  
 table(colData(sce)$study , colData(sce)$cell.class)
 ```
@@ -353,7 +351,7 @@ tnsrb <- callback_tensorboard( log_dir )
 
 
 ```{r eval=FALSE}
-nepochs=1000 #
+nepochs=100 #
 ######  Fit the model using also our specified callbacks for scheduling and early stopping:
 history <- vae %>% fit(
     x=sc_train_x,

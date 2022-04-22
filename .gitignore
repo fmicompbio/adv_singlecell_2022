@@ -173,6 +173,8 @@ venv.bak/
 
 # scvi checkpoints
 scmodel
+stmodel
+
 # Michael
 day1_python_and_R/*-requirements.txt
 day1_python_and_R/ideas_2022.txt
