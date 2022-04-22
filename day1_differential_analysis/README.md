@@ -29,3 +29,8 @@ Another example pipeline for these steps is available
 
 ## Continuous/trajectory datasets
 
+For simplicity, this part will rely on a simulated dataset.
+
+* Differential abundance (DA) analysis
+  - [Demonstration](DA_continuum_demo.Rmd)
+  - [Exercise](DA_continuum_exercise.Rmd)
