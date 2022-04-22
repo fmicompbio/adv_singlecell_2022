@@ -14,10 +14,11 @@ libtool \
 openslide-tools	\
 libvips-dev
 
-RUN mkdir -p /home/juser/workdir
+# RUN mkdir -p /home/juser/workdir
 
-ENV PLUGINDIR=/home/juser/.tissuumaps/plugins
+ENV PLUGINDIR=/home/jovyan/.tissuumaps/plugins
 
+USER $NB_UID
 # create directory for TissUUmaps
 RUN mkdir -p ${PLUGINDIR}
 
@@ -32,8 +33,6 @@ RUN wget -P ${PLUGINDIR} https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Hi
 RUN wget -P ${PLUGINDIR} https://tissuumaps.github.io/TissUUmaps/plugins/Plot_Histogram.js
 
 # change back to notebook user
-USER $NB_UID
-
 ENV CONDA=/opt/conda/bin
 
 ENV PART=day2_multi-omics
@@ -50,10 +49,5 @@ RUN $CONDA/conda env create \
 
 RUN /opt/conda/bin/conda install -y nb_conda_kernels
 
-USER root
-
-RUN chown 1000:1000 /home/juser/workdir
-
-RUN chown -R 1000:1000 /home/juser/.tissuumaps
-
-USER $NB_UID
+RUN rm -r /home/jovyan/work/
+RUN rm environment.yml
