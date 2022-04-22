@@ -1864,7 +1864,8 @@ by the <code>---</code> marks).</p>
 to the document that generates text and/or figure outputs</h2>
 <p>You can execute code interactively (line-by-line or the whole chunk),
 and you can also compile the whole document (<code>Knit</code> button on
-top).</p>
+top). It is good practise to compile the whole document from time to
+time, and most importantly at the end.</p>
 </div>
 <div id="add-an-r-code-chunk-that-select-and-initializes-python" class="section level2" number="3.3">
 <h2><span class="header-section-number">3.3</span> Add an R code chunk
@@ -1901,8 +1902,9 @@ back to the R console.</li>
 chunk to your document</h2>
 <ul>
 <li>This should be below the Python init block.</li>
-<li>Is it using the same Python process as the REPL above? Try to check
-this by printing one of the objects you created above</li>
+<li>Is it using the same Python process as the REPL above, or in other
+words, do the objects created in the REPL persist and are they available
+in a subsequent code chunk? Try to check this.</li>
 </ul>
 <p>You may have noticed that when you run a code chunk interactively in
 RStudio (e.g. by pressing Ctrl-Enter, or clicking on the ‘play’ button),
@@ -1913,14 +1915,14 @@ automatically again when you run R code interactively.</p>
 <h2><span class="header-section-number">3.6</span> Do separate Python
 code chunks use the same Python process?</h2>
 <ul>
-<li>Add two Python code chunks to your document.</li>
-<li>Create an object in the first one.</li>
-<li>Try to access that object in the second one.</li>
+<li>Do objects created in one Python chunk persist and can they be
+accessed in a subsequent Python chunk? You can test this by adding two
+more Python chunks to your document and try it out.</li>
 </ul>
 </div>
-<div id="add-an-r-code-chunk-to-your-document-that-accesses-python-objects" class="section level2" number="3.7">
-<h2><span class="header-section-number">3.7</span> Add an R code chunk
-to your document that accesses Python objects</h2>
+<div id="access-python-objects-from-an-r-code-chunk" class="section level2" number="3.7">
+<h2><span class="header-section-number">3.7</span> Access Python objects
+from an R code chunk</h2>
 <ul>
 <li>In your R chunk, use the special <code>py</code> object to access
 objects that live in the Python process, for example
@@ -1994,45 +1996,52 @@ between R and Python</h3>
 </table>
 </div>
 </div>
-<div id="add-a-python-code-chunk-to-your-document-that-accesses-r-objects" class="section level2" number="3.8">
-<h2><span class="header-section-number">3.8</span> Add a Python code
-chunk to your document that accesses R objects</h2>
+<div id="access-r-objects-from-an-python-code-chunk" class="section level2" number="3.8">
+<h2><span class="header-section-number">3.8</span> Access R objects from
+an Python code chunk</h2>
 <ul>
-<li>Maybe you need to first create some R objects in a separate
-chunk</li>
+<li>You may need to first create some R objects</li>
 <li>In your Python chunk, use the special <code>r</code> object to
 access objects that live in the Python process, for example
-<code>r$v</code></li>
+<code>r.v</code></li>
 </ul>
-<p>The following steps are optional and further illustrate the object
-access:</p>
+<p>Let’s do some more exercises to illustrate object access:</p>
 <ul>
-<li><p>Let’s first create numerical values drawn from normal
-distributions, one in R called <code>n1</code> and one in Python called
-<code>n2</code>:</p></li>
-<li><p>Let’s calculate the mean of <code>n1</code> and <code>n2</code>,
-both in R and in Python:</p></li>
-<li><p>Let’s create a Python function that calculates and returns the
-mean of its argument, and call it from R:</p></li>
+<li><p>Create numerical vectors with 100 values drawn from normal
+distributions (choosing your own mean and standard deviation), one in R
+called <code>n1</code> and one in Python called <code>n2</code>. Hint:
+You can use the <code>rnorm()</code> function in R and the
+<code>numpy.random.normal()</code> function in Python to sample from a
+normal distribution.</p></li>
+<li><p>Calculate the mean of <code>n1</code> and <code>n2</code>, both
+in R and in Python. Hint: You can use the <code>mean()</code> and
+<code>numpy.mean()</code> functions in R and Python,
+respectively.</p></li>
+<li><p>Create a Python function that calculates and returns the mean of
+its argument, and call it from R. Hint: Python functions are defined
+using the <code>def</code> keyword, see for example <a href="https://www.w3schools.com/python/python_functions.asp" class="uri">https://www.w3schools.com/python/python_functions.asp</a></p></li>
 </ul>
 </div>
 <div id="working-with-tabular-data" class="section level2" number="3.9">
 <h2><span class="header-section-number">3.9</span> Working with tabular
 data</h2>
-<p>A particularly nice capability is the built-in support for
-<code>pandas</code> DataFrame objects.</p>
+<p>You may have seen in the type conversion table above that an R
+<code>data.frame</code> is represented in Python as a
+<code>pandas</code> <code>DataFrame</code> and vice versa. Let’s explore
+the automated conversion:</p>
 <ul>
 <li><p>Make the R built-in data.frame <code>iris</code> available in
-Python as <code>pyiris</code> and print its column names (remark: if
+Python as <code>pyiris</code> and print its column names. Remark: if
 <code>pandas</code> is not available in Python, an R
 <code>data.frame</code> will be converted into a Python
-<code>dict</code>)</p></li>
+<code>dict</code>. Hint: you can find <code>pandas</code>
+<code>DataFrame</code> documentation <a href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html">here</a></p></li>
 <li><p>Print a concise summary of the data frame in either R or
 Python</p></li>
 <li><p>Round-trip: Write <code>iris</code> from R into a csv file, read
 it back into <code>pyiris2</code> in Python and make available in R as
-<code>iris2</code> (note the data types of the “Species”
-column)</p></li>
+<code>iris2</code>. Are the data types of the columns in
+<code>iris</code> and <code>iris2</code> identical?</p></li>
 </ul>
 </div>
 <div id="creating-figures-from-r-and-python-code-chunks" class="section level2" number="3.10">
@@ -2043,7 +2052,7 @@ create some plots from both environments:</p>
 <ul>
 <li>Using the <code>iris</code> data frame, create a scatter plot of
 “Sepal.Length” versus “Petal.Length” with points colored by “Species”,
-both in R and in Python. Use chunk options to control the size of the
+in R and/or in Python. Use chunk options to control the size of the
 figures.</li>
 </ul>
 </div>
@@ -2053,19 +2062,17 @@ arrays</h2>
 <p>Here is a quick summary of how R and Python differ in the way they
 represent arrays. For a more detailed discussion see this <a href="https://rstudio.github.io/reticulate/articles/arrays.html">link</a>.</p>
 <p>Dense data (for example a matrix or 2-dimensional array) are stored
-contiguously in memory, addressed by a single index (the memory
-address). Array memory ordering schemes translate that single index into
-multiple indices corresponding to the array coordinates. For example,
-matrices have two indices: rows and columns.</p>
+contiguously in memory. Array memory ordering schemes translate for
+example a (row,column) index to a memory address.</p>
 <p>R and Python differ in their memory ordering schemes: R is so called
 “column-major”, meaning that data is layed-out in memory such that the
-first coordinate is the one changing fastest. To matrix element
-<code>x[i, j]</code> (1-based indices) for example can be found at index
+first coordinate is the one changing fastest. The matrix element
+<code>x[i, j]</code> for example can be found at the address offset
 <code>a = i + (j - 1) * nrow(x)</code>.</p>
 <p>Python/<code>NumPy</code> can store arrays both in “column-major” and
 also “row-major” form, but it defaults to the “row-major” format. In a
 row-major layout, the above example element <code>x[i, j]</code> would
-be found at index <code>a = j + (i - 1) * ncol(x)</code>.</p>
+be found at offset <code>a = j + (i - 1) * ncol(x)</code>.</p>
 <p>If you are using/addressing arrays both in Python and R, it is good
 to know:</p>
 <ul>
@@ -2082,13 +2089,17 @@ of dense array that R understands.<br />
 illustrated in the exercise below:</p>
 <ul>
 <li><p>Create a 4 by 3 by 2 (3-dimensional) array containing the numbers
-1 to 24 in both Python and R</p></li>
+1 to 24 in both Python and R. Hint: in Python, you can use
+<code>numpy.arrange</code> to create the data vector and
+<code>numpy.reshape(..., order = &quot;F&quot;)</code> to “fold” it into the
+desired dimensions (the Fortran-order is required to make it consistent
+with R). In R, you can use <code>1:24</code> to create the data and
+<code>array</code> to fold it.</p></li>
 <li><p>Print both in each of the two environments</p></li>
-<li><p>From both environments, select and print values along just the
-first index of the first dimension (remember that indexing in R and
-Python starts at 1 0, respectively)</p></li>
+<li><p>From both environments, print values along just the first index
+of the first dimension (remember that indexing in R starts at 1 and in
+Python at 0)</p></li>
 </ul>
-<p>As mentioned, more details are discussed <a href="https://rstudio.github.io/reticulate/articles/arrays.html">here</a>.</p>
 </div>
 <div id="working-with-sparse-matrices" class="section level2" number="3.12">
 <h2><span class="header-section-number">3.12</span> Working with sparse
@@ -2097,11 +2108,15 @@ matrices</h2>
 automatically convert R <code>dgcMatrix</code> sparse matrix objects to
 <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csc_matrix.html">SciPy
 CSC matrix</a> objects. Without a working <a href="https://scipy.org/">scipy</a> installation, the conversion will
-fail with a “cannot convert object” error.</p>
+fail with a “cannot convert object” error. For details see <a href="https://rstudio.github.io/reticulate/articles/calling_python.html#sparse-matrices" class="uri">https://rstudio.github.io/reticulate/articles/calling_python.html#sparse-matrices</a></p>
 <ul>
 <li><p>Load the <code>Matrix</code> package in R and create a sparse
 matrix</p></li>
 <li><p>Access the R sparse matrix from a Python chunk</p></li>
+<li><p>Explicitely convert the R sparse matrix to a Python object in an
+R chunk, using the <code>r_to_py</code> function. How does it differ
+from the R matrix? Which process manages the memory allocated for the
+object?</p></li>
 </ul>
 </div>
 </div>
@@ -2111,11 +2126,17 @@ matrix</p></li>
 <li>By default when Python objects are returned to R they are converted
 to their equivalent R types and thus copied. There are ways to prevent
 that and access the Python object and its methods and properties just as
-if it was an instance of an R reference class. See also the the
-<code>convert</code> argument of the <code>py_to_r()</code> function and
-<a href="https://rstudio.github.io/reticulate/articles/calling_python.html#object-conversion" class="uri">https://rstudio.github.io/reticulate/articles/calling_python.html#object-conversion</a></li>
-<li>R and Python use different default numeric types - if Python expects
-an integer, be sure to add L in R (e.g. <code>3L</code>).<br />
+if it was an instance of an R reference class. This may be especially
+relevant for large objects requiring a substantial fraction of the
+available memory. See also the <code>convert</code> argument of the
+<code>py_to_r()</code> function and <a href="https://rstudio.github.io/reticulate/articles/calling_python.html#object-conversion" class="uri">https://rstudio.github.io/reticulate/articles/calling_python.html#object-conversion</a></li>
+<li>R and Python use different default numeric types: Both
+<code>3</code> and <code>3.0</code> are interpreted as floating point
+numbers in R (compare <code>class(3)</code> with <code>class(3.0)</code>
+and <code>class(3L)</code>). In Python, <code>3</code> is interpreted as
+an integer, and <code>3.0</code> as a floating point number. If Python
+expects an integer, make sure to add L in R
+(e.g. <code>3L</code>).<br />
 </li>
 <li>Python uses 0-based indices, while R uses 1-based.<br />
 </li>
@@ -2134,7 +2155,7 @@ package:</p>
 <div id="r" class="section level2" number="5.1">
 <h2><span class="header-section-number">5.1</span> R</h2>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r rchunk"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">date</span>()</span></code></pre></div>
-<pre><code>## [1] &quot;Fri Apr 22 08:03:28 2022&quot;</code></pre>
+<pre><code>## [1] &quot;Fri Apr 22 11:03:20 2022&quot;</code></pre>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r rchunk"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.1.2 (2021-11-01)
 ## Platform: x86_64-pc-linux-gnu (64-bit)
@@ -2177,7 +2198,7 @@ package:</p>
 ## Linux-3.10.0-1160.25.1.el7.x86_64-x86_64-with-glibc2.17
 ## 96 logical CPU cores, x86_64
 ## -----
-## Session information updated at 2022-04-22 08:03</code></pre>
+## Session information updated at 2022-04-22 11:03</code></pre>
 </div>
 </div>
 
