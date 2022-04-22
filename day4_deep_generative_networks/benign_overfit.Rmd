@@ -26,10 +26,7 @@ options(width = 80)
 ```{r libload}
 suppressPackageStartupMessages({
 
-system("pipenv --python 3.8")
-venv <- system("pipenv --venv", inter = TRUE)
-reticulate::use_virtualenv(venv, required = TRUE)
-
+reticulate::use_condaenv("day4_deep_generative_networks")
 reticulate::py_config()
 library(keras)
 K <- backend() # manual add-on
