@@ -21,8 +21,8 @@ We build the abundances object:
 
 ```{r}
 sce <- readRDS("/data/day1_differential_analysi/DA_example2.SCE.rds")
-cluster_abundances <- reshape2::dcast(as.data.frame(colData(sce)), cluster_id~sample_id)
-row.names(cluster_abundances) <- cluster_abundances$cluster_id
+cluster_abundances <- unclass(table(sce$cluster_id, sce$sample_id))
+names(dimnames(cluster_abundances)) <- NULL
 cla <- SummarizedExperiment(list(counts=as.matrix(cluster_abundances[,-1])))
 cla$group <- factor(ifelse(grepl("LPS",colnames(cla)),"LPS","Control"))
 assays(cla)$proportion <- 100*t(t(assay(cla))/colSums(assay(cla)))
