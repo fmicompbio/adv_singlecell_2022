@@ -29,6 +29,11 @@ suppressPackageStartupMessages({
 
 ```{r, prep}
 sce <- readRDS("/data/day1_differential_analysi/DS_sce.rds")
+# quick look
+table(sce$cluster_id, sce$sample_id)
+```
+
+```{r, prep}
 sce <- scuttle::logNormCounts(sce)
 # prepare for muscat:
 sce <- prepSCE(sce, kid="cluster_id", sid="sample_id", gid="group_id")
@@ -40,6 +45,7 @@ sce <- prepSCE(sce, kid="cluster_id", sid="sample_id", gid="group_id")
 # compute pseudobulk (sum of counts) by cluster-sample
 pb <- aggregateData(sce, assay = "counts", 
                     by=c("cluster_id", "sample_id"), fun="sum")
+pb
 ```
 
 We can then also generated a pseudo-bulk level MDS plot:

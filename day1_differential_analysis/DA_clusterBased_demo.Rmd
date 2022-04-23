@@ -26,12 +26,11 @@ The simplest approach is to use established count-based analysis methods (e.g. e
 We first load the data and extract the cluster counts per sample:
 
 ```{r}
-#sce <- readRDS("/data/day1_differential_analysi/DA_example1.SCE.rds")
-sce <- readRDS("../../DA_example1.SCE.rds")
+sce <- readRDS("/data/day1_differential_analysi/DA_example1.SCE.rds")
 # we build a SE of cluster abundances
 cluster_abundances <- unclass(table(sce$cluster_id, sce$sample_id))
 names(dimnames(cluster_abundances)) <- NULL
-cla <- SummarizedExperiment(list(counts=as.matrix(cluster_abundances[,-1])))
+cla <- SummarizedExperiment(list(counts=as.matrix(cluster_abundances)))
 cla$group <- factor(ifelse(grepl("LPS",colnames(cla)),"LPS","Control"))
 # we calculate proportions
 assays(cla)$proportion <- 100*t(t(assay(cla))/colSums(assay(cla)))
@@ -43,7 +42,10 @@ We plot the proportions across group:
 Heatmap(assays(cla)$proportion, column_split=cla$group, name="%")
 # scaled proportion (to view smaller populations)
 Heatmap(t(scale(t(assays(cla)$proportion))), column_split=cla$group, name="scaled %")
+```
 
+
+```{r}
 # quick fn to compare the proportions across groups
 plotProps <- function(cla, assay="proportion"){
   # get the mean proportions per group
@@ -56,7 +58,11 @@ plotProps <- function(cla, assay="proportion"){
     ggtitle(assay) + scale_x_log10() + scale_y_log10()
 }
 plotProps(cla)
+```
 
+Normalization:
+
+```{r}
 # normalization using edgeR
 dds <- DGEList(assay(cla), group=cla$group)
 dds <- calcNormFactors(dds)
@@ -82,7 +88,8 @@ ggplot(d, aes(group, Microglia, fill=group)) + geom_violin() + stat_summary()
 
 ## Using explicit composition approaches
 
-[ANCOMBC](https://bioconductor.org/packages/release/bioc/html/ANCOMBC.html) was
+[ANCOMBC](https://bioconductor.org/packages/release/bioc/html/ANCOMBC.html)
+(Analysis of compositions of microbiomes with bias correction) was
 designed for microbiome data, and explictly models the effect of changes on some
 subpopulations on the observed frequencies of others.
 
@@ -93,7 +100,8 @@ ps <- phyloseq(otu_table(assay(cla), taxa_are_rows=TRUE),
 # we run the method:
 out2 <- ancombc(ps, formula="group")
 # look at the results:
-(out2 <- setNames(do.call(cbind, out2$res), names(out2$res)))
+out2 <- setNames(do.call(cbind, out2$res), names(out2$res))
+out2[order(out2$q_val),]
 ```
 
 ## Comparing the two
@@ -102,6 +110,7 @@ out2 <- ancombc(ps, formula="group")
 out1$ANCOMBC.pval <- out2[row.names(out1),"p_val"]
 out1$ANCOMBC.beta <- out2[row.names(out1),"beta"]
 p1 <- ggplot(out1, aes(logFC, ANCOMBC.beta, size=-log10(ANCOMBC.pval))) + 
+  geom_vline(xintercept=0) + geom_hline(yintercept=0) +
   geom_abline(slope=1, colour="grey") + geom_point() +
   labs(x="edgeR logFC", y="ANCOMBC beta", size="log10(pval)")
 p2 <- ggplot(out1, aes((PValue), (ANCOMBC.pval))) + scale_x_log10() + scale_y_log10() +
