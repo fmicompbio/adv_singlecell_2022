@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>RNA velocity</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Charlotte Soneson" />
+    <meta name="date" content="2022-04-26" />
+    <script src="libs/header-attrs/header-attrs.js"></script>
+    <link href="libs/remark-css/default.css" rel="stylesheet" />
+    <link href="libs/remark-css/metropolis.css" rel="stylesheet" />
+    <link href="libs/remark-css/rladies-fonts.css" rel="stylesheet" />
+    <link href="libs/font-awesome/css/all.css" rel="stylesheet" />
+    <link href="libs/font-awesome/css/v4-shims.css" rel="stylesheet" />
+    <link rel="stylesheet" href="my-theme.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# RNA velocity
+### <a href="https://csoneson.github.io">Charlotte Soneson</a>
+### Computational Biology Platform, Friedrich Miescher Institute for Biomedical Research
+### April 26, 2022
+
+---
+
+
+layout: true
+
+
+
+
+
+
+
+---
+# Before we start
+
+1. Clone the GitHub repository of the course to the AWS RStudio instance, if you haven't already
+2. Open the file `day1_RNA_velocity/RNAVelocityData.Rmd` and knit it to generate the data we will use for the exercises. This will take a bit of time since it will create the required conda environments for the analysis. 
+
+---
+# RNA velocity
+
+* The gene expression profile of a cell often gives a good indication of the current state of the cell. However, being a single snapshot in time, it does not tell us in which _direction_ (in gene expression space) the cell is heading, or in what state it will be at some point in the near future.
+* RNA velocity is one way of filling this gap - it is defined as the rate of change of the mature RNA abundance in a cell, and can be estimated from scRNA-seq data by joint modeling of estimated unspliced (pre-mRNA) and spliced (mature mRNA) abundances.
+
+![](rna-velocity-figures/scvelo_example_dynmod.png)
+
+&lt;div class="my-footer"&gt;&lt;span&gt;https://scvelo.readthedocs.io/DynamicalModeling.html&lt;/span&gt;&lt;/div&gt;
+
+---
+# RNA velocity
+
+![](rna-velocity-figures/BergenFig1a.png)
+
+.pull-left[
+* s - spliced/exonic/processed/mature mRNA abundance
+* u - unspliced/intronic/unprocessed/pre-mRNA abundance
+]
+
+.pull-right[
+![:scale 90%](rna-velocity-figures/RNAvelocityEquation.png)
+]
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Zeisel et al (2011), La Manno et al (2018), Bergen et al (2020)&lt;/span&gt;&lt;/div&gt;
+
+---
+background-image: url("rna-velocity-figures/steady-state/steady-state.001.png")
+background-position: center
+background-size: cover
+
+# Steady state and RNA velocity
+
+---
+background-image: url("rna-velocity-figures/steady-state/steady-state.002.png")
+background-position: center
+background-size: cover
+
+# Steady state and RNA velocity
+
+---
+# Velocity estimation
+
+* velocyto (R/python) - steady-state model
+* scVelo (python) - steady-state, stochastic, dynamical models
+* velociraptor (R wrapper for scVelo)
+
+![:scale 85%](rna-velocity-figures/BergenFig1.jpg)
+
+---
+# Input data
+
+* Solving the system of ODEs requires abundance estimates for both mature mRNA and pre-mRNA - can't use "regular" gene expression estimation pipelines.
+* For droplet scRNA-seq data, options include: 
+    * alevin (or alevin-fry)
+    * kallisto|bustools
+    * STARsolo
+    * velocyto
+
+![](rna-velocity-figures/feature_reads.png)
+
+&lt;div class="my-footer"&gt;&lt;span&gt;La Manno et al (2018), Srivastava et al (2019), Melsted, Ntranos &amp; Pachter (2019), Melsted et al (2019), He et al (2021), Kaminow et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+# What is an intron? 
+
+&lt;center&gt;
+![:scale 80%](rna-velocity-figures/intron_definition_2.001.png)
+&lt;/center&gt;
+
+---
+background-image: url("rna-velocity-figures/quantification_examples/quantification_examples.001.png")
+background-position: center
+background-size: contain
+
+# Example
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+background-image: url("rna-velocity-figures/quantification_examples/quantification_examples.002.png")
+background-position: center
+background-size: contain
+
+# Example
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+background-image: url("rna-velocity-figures/quantification_examples/quantification_examples.003.png")
+background-position: center
+background-size: contain
+
+# Example
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+background-image: url("rna-velocity-figures/quantification_examples/quantification_examples.004.png")
+background-position: center
+background-size: contain
+
+# Example
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+background-image: url("rna-velocity-figures/quantification_examples/quantification_examples.005.png")
+background-position: center
+background-size: contain
+
+# Example
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+background-image: url("rna-velocity-figures/quantification_examples/quantification_examples.006.png")
+background-position: center
+background-size: contain
+
+# Example
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+
+# Recommendations
+
+![](rna-velocity-figures/journal.pcbi.1008585.t004.PNG)
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Soneson et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+
+# Challenges and current/future development directions
+
+* Scale invariance of the solution to the system of ODEs derived from the phase plot (if `\((\alpha_g, \beta_g, \gamma_g)\)` is a solution, so is `\(\kappa(\alpha_g, \beta_g, \gamma_g)\)`). 
+    * _velocyto_ assumes the same splicing rate for all genes.
+    * _scVelo_ assumes a constant prior time for a full cycle in the phase plot. 
+    * `\(\kappa\)`-velo (Marot-Lassauzaie et al (2022)) - use cell density in a region of the phase plot as a measure of average velocity in the region. 
+
+![](rna-velocity-figures/kappa-velo.png)
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Gorin et al (2022), Marot-Lassauzaie et al (2022), Bergen et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+---
+
+# Challenges and current/future development directions
+
+* Embedding of velocity vectors in low-dimensional representations by summing displacements to neighboring cells with a high transition probability is unstable. 
+    * For PCA, directly project start and end point of velocity vectors.
+    * For other methods, suggested to use a Nyström projection, if velocities are small enough (Marot-Lassauzaie et al (2022)).
+* Current velocity methods don't adjust for/incorporate batch effects between samples - the best way to do this is still unclear.
+* Many smoothing steps hides biological variability and noisy expression. 
+* Typically, spliced and unspliced matrices are normalized separately, which may introduce artefacts if there are differences in the S/U ratio between cell types. 
+* Default gene selection methods are based on the spliced counts only. 
+* Quantification is not a solved issue, and does not account for the presence of intermediate (partly spliced) gene products. 
+* Splicing and degradation rates are supposed to be constant - may not always be the case. 
+
+&lt;div class="my-footer"&gt;&lt;span&gt;Gorin et al (2022), Marot-Lassauzaie et al (2022), Bergen et al (2021)&lt;/span&gt;&lt;/div&gt;
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="my-macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9"
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+<style>
+.logo {
+  background-image: url(images/fmi_logo.svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  position: absolute;
+  bottom: 1.5em;
+  left: 55px;
+  width: 173px;
+  height: 75px;
+  z-index: 0;
+}
+</style>
+
+<script>
+document
+  .querySelectorAll(
+    '.remark-slide-content' +
+    '.title-slide'
+  )
+  .forEach(el => {
+    el.innerHTML += '<div class="logo"></div>';
+  });
+</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

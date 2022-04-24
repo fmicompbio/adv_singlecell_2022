@@ -1,7 +1,7 @@
 ---
 title: 'Combining the best of two worlds: Python & R'
 author: "Michael Stadler"
-date: "April 7, 2022"
+date: "April 22, 2022"
 output:
     ioslides_presentation:
         css: styles.css
@@ -23,13 +23,9 @@ knitr::opts_chunk$set(echo = FALSE)
 #    conda activate /tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv
 #    Rscript /tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/R_requirements.R
 library(reticulate)
-if (grepl(".fmi.ch$", Sys.info()["nodename"])) {
-    # Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/pythonlib")
-    # Sys.setenv(RETICULATE_PYTHON = "/usr/bin/python3.6") # use system python 3.6
-    # systemPipeR::moduleload("Miniconda3/4.10.3")
-    # reticulate::use_python("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
-    Sys.setenv(PYTHONPATH = "/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/lib/python3.9/site-packages/")
-    reticulate::use_condaenv("/tungstenfs/groups/gbioinfo/stadler/documents/teaching/adv_singlecell_2022/day1_python_and_R/pythonenv/bin/python")
+if (file.exists("FMI_python_config.R")) {
+    # setup for FMI server
+    source("FMI_python_config.R")
 }
 reticulate::py_config()
 stopifnot(reticulate::py_available())
@@ -40,7 +36,7 @@ stopifnot(reticulate::py_available())
 - <div class="bullet-level1">Motivation for combining R and Python</div>  
 
 - <div class="bullet-level1">Levels of integration</div>
-    * Break into homogeneous chunks  
+    * Break analysis into homogeneous chunks  
     * Use a "bridge"  
     * Truly integrated workflow  
 
@@ -79,6 +75,7 @@ stopifnot(reticulate::py_available())
 - use case (why I started looking into combining R and Python):
     * primarily use <span class="inline-code">R/BioC</span> for analysis of single cell data
     * want to make use of <span class="inline-code">scVelo</span> python package for RNA-velocity analysis
+    * the <span class="inline-code">velociraptor</span> package did not exist yet
 
 ## Levels of integration {.smaller}
 
@@ -89,7 +86,7 @@ stopifnot(reticulate::py_available())
 
 2. <div class="bullet-level1">Use a "bridge"</div>  
     - primarily work with one language
-    - use a <strong>specialized package</strong> that allows calling the 2nd language from the first
+    - use a <strong>specialized package</strong> (e.g. `rpy2`) that allows calling the 2nd language from the first
     <!-- - learn its syntax and object mapping and add appropriate calls   -->
     <!-- - works well for few/well encapsulated calls to second language, if required objects can be shared over "bridge" -->
 
@@ -97,6 +94,7 @@ stopifnot(reticulate::py_available())
     - use a single script or notebook
     - run it through a <strong>pair of connected R and python processes</strong>
     - <strong>objects are shared</strong> between these processes (no need for input/output files)
+    - this is possible both using `RStudio/reticulate` and `Jupyter/rpy2`
 
 ## Approach 1: break into pure R/python chunks
 
@@ -175,8 +173,9 @@ NULL, TRUE, FALSE      None, True, False NULL, TRUE, FALSE
 
 - many packages use `reticulate` in the background to bridge to Python
 - prominent examples are the R packages [Tensorflow](https://tensorflow.rstudio.com/) and [Keras](https://keras.rstudio.com/) that implement an R API strongly resembling the original Python APIs ([Tensorflow](https://www.tensorflow.org/) and [Keras](https://keras.io/)), and use `reticulate` for Python calls and object translation  
-- you will see those packages in use on the third of this course in the discussion of deep generative networks  
-- for package developers, the newly released [basilisk](https://bioconductor.org/packages/basilisk/) Bioconductor package may also be interesting: It provides a mechanism to distribute a controled Python environment
+- for package developers, the [basilisk](https://bioconductor.org/packages/basilisk/) Bioconductor package may be interesting: It provides a mechanism to distribute a controlled Python environment and is used for example in:
+    * [velociraptor](https://www.bioconductor.org/packages/velociraptor/)
+    * [zellkonverter](https://www.bioconductor.org/packages/zellkonverter/)
 
 <div class="hvcentered">![](figures/tensorflow-logo.svg){width=300px} ![](figures/keras_logo.png){width=300px}</div>
 
@@ -214,19 +213,19 @@ pi
 - <div class="bold-large">use a single script or notebook</div>
     * use a pair of connected R and python processes
     * processes can share objects similarly as with "bridge" approach  
-    <!-- * not new: Emacs org-mode, Beaker notebook (not developped anymore), ... -->
+    <!-- * not new: Emacs org-mode, Beaker notebook (not developed anymore), ... -->
     * supported by RStudio: <span class="inline-code">rmarkdown</span> + <span class="inline-code">reticulate</span>, see also [blog post](https://blog.rstudio.com/2018/03/26/reticulate-r-interface-to-python/)
     * supported by Jupyter: [<span class="inline-code">rpy2.ipython.rmagic</span>](https://rpy2.github.io/doc/latest/html/interactive.html#module-rpy2.ipython.rmagic)  
 
 - <div class="green-large">Advantages</div>
     * easy to use  
     * can mostly use native code  
+    * limited need to learn specific syntax
     
 - <div class="red-large">Disadvantages</div>
     * increased complexity of environment (ok once it is setup)  
-    * need to learn some specific syntax (limited)  
 
-## "I don't like notebooks"
+## Comment: "I don't like notebooks"
 
 - <div class="bullet-level2">presentation by Joel Grus at JupyterCon 2018:</div>  
     * [link to slides (Google docs)](https://docs.google.com/presentation/d/1n2RlMdmv1p25Xy5thJUhkKGvjtV-dkAIsUXP-AL4ffI/edit#slide=id.g362da58057_0_1)  
@@ -242,10 +241,10 @@ pi
 <div class="columns-2">
 Code cells are declared in a header:  
 
-![](figures/rstudio_reticulate2.png){width=420px}
+![](figures/rstudio_reticulate2.png){width=380px}
 
 The special objects <span class="inline-code">r</span> and <span class="inline-code">py</span> can be used to access the "other side":  
-![](figures/rstudio_reticulate3.png){width=420px}
+![](figures/rstudio_reticulate3.png){width=379px}
 </div>
 
 ## Example: Jupyter notebook
@@ -256,6 +255,18 @@ Code cells are declared to contain R by starting with <span class="inline-code">
 </pre>
 
 ![](figures/jupyter_rmagic.png){width=640px}
+
+## Files and Exercises
+
+- `day1_python_and_R/01_introduction.html`  
+   these slides
+- `day1_python_and_R/02_exercise_rstudio_problem-based.html`  
+   our exercises (RStudio)
+- `day1_python_and_R/03_exercise_rstudio.html`  
+  [optional] self-study RStudio
+- `day1_python_and_R/04_exercise_jupyter.html`  
+  [optional] self-study Jupyter
+
 
 ## {.vcenter .verylarge}
 

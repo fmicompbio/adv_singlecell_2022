@@ -16,8 +16,8 @@ library(ggspavis)
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
 
 ```{r}
-root_dir <- "/Users/giovanni.palla/Datasets/advomics"
-ad <- readH5AD(paste0(root_dir,"/spatial_adata/V10F24-105_A1.h5ad"))
+root_dir <- "/Users/giovanni.palla/Datasets/advomics_data_spatial"
+ad <- readH5AD(paste0(root_dir,"/V10F24-105_A1.h5ad"))
 ```
 
 Look at the SpatialExperimentObject

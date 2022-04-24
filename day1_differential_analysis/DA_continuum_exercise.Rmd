@@ -1,0 +1,33 @@
+---
+title: "Continuum DA exercise"
+author: "Mark"
+date: "4/20/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(SingleCellExperiment)
+  library(miloR) # differential expression analysis
+  library(ggplot2) # for plotting
+  library(patchwork) # for combining plots
+  library(scater)
+})
+```
+
+We read in the `SingleCellExperiment` object, do some clustering and interrogate some basic properties:
+
+```{r}
+# sce <- readRDS("/data/day1_differential_analysis/sce_continuum_exercise_public.rds")
+sce <- readRDS("day1_differential_analysis/sce_continuum_exercise_public.rds")
+
+plotUMAP(sce, colour_by="condition", shape_by="sample")
+
+```
+
+
+## Exercise
+
+Let's try to find the subpopulations that are differentially abundant between condition A and B (3 replicates of each condition) using the methods discussed so far (one is very obvious from the low dimensional project). For example, one could even start with something straightforward: cluster cells into a reasonable resolution, extract a count table of those clusters across all samples and manually perform a DA analysis with your favourite tool. Following that, perhaps a miloR analysis could be tested or the inference of lineages (e.g., slingshot) and computing the (relative) densities along the lineage.
