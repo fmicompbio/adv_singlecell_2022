@@ -62,6 +62,7 @@ data set can be exchanged for the spermatogenesis data set from
 suppressPackageStartupMessages({
     library(SingleCellExperiment)
     library(scater)
+    library(basilisk)
 })
 sce <- readRDS("pancreas.rds")
 sce
