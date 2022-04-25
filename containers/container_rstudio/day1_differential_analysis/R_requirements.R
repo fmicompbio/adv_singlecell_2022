@@ -5,7 +5,6 @@ pkgs <- c("miloR","muscat","devtools", "distinct",
           "condiments", "nebula", "sechm",
           "ANCOMBC", "phyloseq"
           )
-
 devtools::install_github("dynverse/dyntoy")
 devtools::install_github("fionarhuang/treeclimbR")
 
