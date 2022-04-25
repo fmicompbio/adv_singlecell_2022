@@ -1,0 +1,137 @@
+---
+title: "Preparation of example data for RNA velocity exercises"
+author: "Charlotte Soneson"
+date: "April 26, 2022"
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    fig_width: 5
+    number_sections: false
+    theme: united
+bibliography: "rna-velocity.bib"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  crop = NA
+)
+suppressPackageStartupMessages({
+    require(BiocStyle)
+})
+htmltools::tagList(rmarkdown::html_dependency_font_awesome())
+```
+
+# Load packages
+
+```{r}
+suppressPackageStartupMessages({
+    library(reticulate)
+    library(SingleCellExperiment)
+    library(scuttle)
+    library(scater)
+    library(scran)
+    library(scRNAseq)
+    library(zellkonverter)
+})
+```
+
+# Pancreas data set
+
+The Pancreas data set [@Bastidas-Ponce2019-pancreas] comes from a study of 
+endocrine development in mouse, and was generated with the 10x Genomics Chromium 
+platform, using v2 chemistry. It is commonly used as an example data set for 
+illustrating RNA velocity analyses. Here, we obtain it from the `scVelo` 
+python package and convert it to a `SingleCellExperiment` object using the 
+`r Biocpkg("zellkonverter")` Bioconductor package. 
+
+```{r, fig.width = 8}
+## Set conda environment to have access to scVelo
+reticulate::use_condaenv(basilisk:::.obtainEnvironmentPath(velociraptor:::velo.env))
+scv <- reticulate::import("scvelo")
+
+## Load data set and create counts assay
+pancreas <- zellkonverter::AnnData2SCE(scv$datasets$pancreas())
+assay(pancreas, "counts") <- assay(pancreas, "X")
+
+## Calculate log-normalized counts
+pancreas <- scuttle::logNormCounts(pancreas)
+
+## Find highly variable genes
+dec <- scran::modelGeneVar(pancreas)
+top.hvgs <- scran::getTopHVGs(dec, n = 2000)
+metadata(pancreas)$HVGs <- top.hvgs
+
+## Plot provided UMAP representation
+scater::plotReducedDim(pancreas, dimred = "X_umap", colour_by = "clusters")
+
+pancreas
+
+## Save SingleCellExperiment
+saveRDS(pancreas, file = "pancreas.rds")
+
+## Save AnnData object
+zellkonverter::writeH5AD(pancreas, file = "pancreas_AnnData.h5ad",
+                         X_name = "counts")
+```
+
+# Spermatogenesis data set
+
+The Spermatogenesis data set [@Hermann2018-spermatogenesis] consists of 
+steady-state spermatogenic cells from an adult mouse, and was obtained with 
+10x Genomics Chromium v2 chemistry. 
+
+Spliced and unspliced counts for this data set are available via the 
+`r Biocpkg("scRNAseq")` Bioconductor package. See 
+[here](https://github.com/LTLA/scRNAseq/blob/master/inst/scripts/2.4.0/make-hermann-spermatogenesis-data.Rmd) for a record of how the data was processed to get to the 
+`SingleCellExperiment` object from the raw FASTQ files.
+
+```{r, fig.width = 8}
+## Load data set
+spermatogenesis <- HermannSpermatogenesisData()
+
+## Add a 'counts' assay for easier downstream analysis 
+## (here equal to the 'spliced' assay)
+assay(spermatogenesis, "counts") <- assay(spermatogenesis, "spliced")
+
+## Calculate log-normalized counts
+spermatogenesis <- scuttle::logNormCounts(spermatogenesis)
+
+## Find highly variable genes
+dec <- scran::modelGeneVar(spermatogenesis)
+top.hvgs <- scran::getTopHVGs(dec, n = 2000)
+metadata(spermatogenesis)$HVGs <- top.hvgs
+
+## Perform dimensionality reduction
+set.seed(100)
+spermatogenesis <- scater::runPCA(spermatogenesis, subset_row = top.hvgs)
+spermatogenesis <- scater::runTSNE(spermatogenesis, dimred = "PCA")
+
+## Plot tSNE representation
+scater::plotTSNE(spermatogenesis, colour_by = "celltype")
+
+spermatogenesis
+
+## Save SingleCellExperiment
+saveRDS(spermatogenesis, file = "spermatogenesis.rds")
+
+## Save AnnData object
+zellkonverter::writeH5AD(spermatogenesis, file = "spermatogenesis_AnnData.h5ad",
+                         X_name = "counts")
+```
+
+# Session info
+
+```{r}
+sessionInfo()
+```
+
+# References

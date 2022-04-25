@@ -1,0 +1,35 @@
+---
+title: "Differential State Analysis - exercise on cell type specificity"
+author: "Pierre-Luc"
+date: "4/19/2022"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(SingleCellExperiment) # core sc infrastructures
+  library(scuttle) # lots of sc-related functions
+  library(sechm) # simplifies making heatmaps from SE-like objects
+  library(edgeR) # differential expression analysis
+  library(ggplot2) # for plotting
+  library(BiocParallel) # for multithreading
+})
+```
+
+We take the flattened pseudo-bulk SE we had:
+
+```{r}
+pb <- readRDS("/data/day1_differential_analysi/DS_pb.rds")
+pb
+```
+
+Let's have a look at the union of differentially-expressed genes (DEGs):
+
+```{r, fig.width=8, fig.height=4}
+degs <- row.names(pb)[rowSums(as.matrix(rowData(pb))<0.05,na.rm=TRUE)>0]
+sechm(pb, degs, assayName="logFC", row_title="Union of DEGs")
+```
+
+Given the high similarity between the responses across cell types, how can we best identify genes that respond specifically in one cell type? For example in Endothelial cells?
+
+Can we answer that question using the GLMs framework?

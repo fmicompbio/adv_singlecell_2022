@@ -1,0 +1,151 @@
+.huge {
+  font-size: 300%
+}
+
+.pull-left {
+  float: left;
+  width: 34%;
+}
+.pull-right {
+  float: right;
+  width: 54%;
+}
+
+/* Define footer */
+div.my-footer {
+    background-color: #f7f7f2;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height: 20px;
+    width: 80%;
+}
+div.my-footer span {
+    font-size: 10pt;
+    color: #0554f2;
+    position: absolute;
+    left: 15px;
+    bottom: 2px;
+}
+
+/* Increase font size of title (1st h1 on title slide)*/
+.title-slide h1:nth-of-type(1) {
+    font-size: 400%;
+}
+
+.blue {
+  color: #0148A4;
+}
+
+/*
+Developed and maintained by Kevin Rue-Albrecht (@kevinrue)
+*/
+
+/*
+#0092ac   blue background
+#00758a   darker blue (active menu)
+#1a81c2   blue titles
+#c4d931   green (on blue)
+#87b13f   green (on white)
+*/
+
+/*
+div.my-header {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 80px;
+    width: 100%;
+    background-color: #0092ac;
+}
+
+div.my-header img {
+    margin-top: 3px;
+    margin-right: 3px;
+    border-color: #00758a;
+    border-width: thin;
+    border-style: solid;
+}
+
+div.my-footer {
+    background-color: #0092ac;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height: 30px;
+    width: 100%;
+}
+div.my-footer span {
+    font-family: 'Lato', 'Palatino Linotype', 'Book Antiqua', Palatino, 'Microsoft YaHei', 'Songti SC', serif;
+    font-size: 13pt;
+    color: #F7F8FA;
+    position: absolute;
+    left: 15px;
+    bottom: 2px;
+}
+
+.remark-slide-number {
+    color: #F7F8FA;
+    bottom: 3px;
+}
+
+.remark-slide-content>h1 {
+    position: fixed;
+    color: #c4d931;
+}
+
+h1 {
+    color: #c4d931;
+    background-color: #0092ac;
+}
+
+h2 {
+    color: #1a81c2;
+}
+
+a, a > code {
+    color: #18bc9c;
+    text-decoration: none;
+}
+
+.small-p p {
+    font-size: small;
+}
+
+p>.fa,
+p>.fas,
+p>.far,
+p>.fab {
+  color: #0092ac;
+}
+
+li>.fa,
+li>.fas,
+li>.far,
+li>.fab {
+  color: #0092ac;
+}
+
+.title-slide>h1 {
+    color: #c4d931;
+    background-color: #0092ac;
+    position: static;
+    padding-left: 20px;
+}
+
+.title-slide>h2 {
+    color: #1a81c2;
+    padding-left: 20px;
+}
+
+.title-slide>h3 {
+    padding-left: 20px;
+}
+
+hr,.title-slide h2::after,
+.mline h1::after {
+    background-color: #0092ac;
+    color: #0092ac;
+}
+*/
+
