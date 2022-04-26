@@ -4,15 +4,15 @@ import pathlib
 import imageio
 from skimage.util import img_as_ubyte
 
-LIB_ID = "V10F24-105_A1"
-path = pathlib.Path("/Users/giovanni.palla/Datasets/advomics/advomics_data_spatial")
-st_adata = sc.read(path / f"{LIB_ID}.h5ad"")
+def save_img(adata, lib_id: str, path: str):
 
-img_path = path / f"{LIB_ID}.png"
-logg.warning(f"Saved image at: {img_path}")
-imageio.imwrite(
-    img_path,
-    img_as_ubyte(st_adata.uns["spatial"][LIB_ID]["images"]["hires"]),
-)
-scalef = st_adata.uns["spatial"][LIB_ID]["scalefactors"]["tissue_hires_scalef"]
-logg.warning(f"Scalefactor is: {scalef}")
+    img_path = path / f"{lib_id}.png"
+    logg.warning(f"Saved image at: {img_path}")
+    imageio.imwrite(
+        img_path,
+        img_as_ubyte(adata.uns["spatial"][lib_id]["images"]["hires"]),
+    )
+    scalef = adata.uns["spatial"][lib_id]["scalefactors"]["tissue_hires_scalef"]
+    logg.warning(f"Scalefactor is: {scalef}")
+    
+    return

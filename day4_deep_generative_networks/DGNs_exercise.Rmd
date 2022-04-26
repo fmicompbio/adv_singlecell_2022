@@ -1,7 +1,7 @@
 ---
 title: "Variational Inference for SC RNAseq data"
 author: "Panagiotis Papasaikas"
-date: "2021-08-19"
+date: "2022-04-25"
 output:
   html_document:
     css: styles.css
@@ -29,6 +29,7 @@ options(width = 80)
 
 ```{r libload, eval=FALSE}
 reticulate::use_condaenv("day4_deep_generative_networks")
+reticulate::py_config()
 library(tensorflow)
 library(keras)
 library(Matrix)

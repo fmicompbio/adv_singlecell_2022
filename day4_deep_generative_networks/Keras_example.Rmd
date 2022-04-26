@@ -1,7 +1,7 @@
 ---
 title: "Basic Keras example"
 author: "Panagiotis Papasaikas"
-date: "2021-08-19"
+date: "2022-04-25"
 output:
   html_document:
     css: styles.css
@@ -52,12 +52,11 @@ First we need to load the `keras` library:
 
 ```{r libload, eval=FALSE}
 suppressPackageStartupMessages({
-system("pipenv --python 3.8")
-venv <- system("pipenv --venv", inter = TRUE)
-reticulate::use_virtualenv(venv, required = TRUE)
+reticulate::use_condaenv("day4_deep_generative_networks")
 library(tensorflow)
-install_tensorflow(version= '2.4.0')
 library(keras)
+library(ggplot2)
+library(gridExtra)
 })
 ```
 
@@ -68,19 +67,17 @@ library(keras)
 #Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
 #ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
 
-reticulate::py_config()
-library(keras)
-K <- backend() # manual add-on
-library(tensorflow)
-tf$version$VERSION
-library(ggplot2)
-library(gridExtra)
+#reticulate::py_config()
+#library(keras)
+#K <- backend() # manual add-on
+#library(tensorflow)
+#tf$version$VERSION
+#library(ggplot2)
+#library(gridExtra)
 
 #Check device usage:
-tf$compat$v1$Session( config=tf$compat$v1$ConfigProto(log_device_placement=TRUE)  )
-tf$compat$v1$keras$backend$get_session()
-
-
+#tf$compat$v1$Session( config=tf$compat$v1$ConfigProto(log_device_placement=TRUE)  )
+#tf$compat$v1$keras$backend$get_session()
 ```
 
 
