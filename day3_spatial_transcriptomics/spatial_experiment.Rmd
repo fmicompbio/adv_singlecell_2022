@@ -3,9 +3,7 @@ title: "R Notebook"
 output: html_notebook
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
-
-Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+We will take a look at `ggspavis` and the `SpatialExperiment` object in Bioconductor.
 
 ```{r}
 library(zellkonverter)
@@ -13,11 +11,11 @@ library(SpatialExperiment)
 library(ggspavis)
 ```
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+Let's read it and convert it with zellkonverter
 
 ```{r}
-root_dir <- "/Users/giovanni.palla/Datasets/advomics_data_spatial"
-ad <- readH5AD(paste0(root_dir,"/V10F24-105_A1.h5ad"))
+path_adata <- "/data/day3_spatial_transcriptomics"
+ad <- readH5AD(paste0(path_adata,"/V10F24-105_A1_destvi.h5ad"))
 ```
 
 Look at the SpatialExperimentObject
@@ -30,10 +28,11 @@ spe <- SpatialExperiment(
     spatialCoords = coords,
 )
 spe[["sample_id"]] <- "V10F24-105_A1"
+spe
 ```
 
 ```{r}
-path_img <- paste0(root_dir,"/V10F24-105_A1.png")
+path_img <- "/home/rstudio/adv_singlecell_2022/day3_spatial_transcriptomics/V10F24-105_A1.png"
 spe <- addImg(spe, 
     sample_id = "V10F24-105_A1", 
     image_id = "V10F24-105_A1",
@@ -43,14 +42,19 @@ spe <- addImg(spe,
 ```
 
 ```{r}
-plotSpots(spe,annotate = "array_col",)
+colData(spe)
+```
+
+
+```{r}
+plotSpots(spe,annotate = "Stromal.cells")
 ```
 
 ```{r}
-plotVisium(spe,fill = "array_col",)
+plotVisium(spe,fill = "array_row")
+```
+```{r}
+plotVisium(spe,fill = "Stromal.cells",)
 ```
 
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
 
