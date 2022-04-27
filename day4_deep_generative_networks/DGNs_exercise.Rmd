@@ -30,25 +30,20 @@ options(width = 80)
 ```{r libload, eval=FALSE}
 reticulate::use_condaenv("day4_deep_generative_networks")
 reticulate::py_config()
-library(tensorflow)
-library(keras)
-library(Matrix)
-library(SingleCellExperiment)
-library(Rtsne)
-library(rsvd)
-library(RColorBrewer)
-K <- backend() # manual add-on
-})
 ```
 
 
 ```{r, include=FALSE}
-#Specific setup for xenon6 execution :
-reticulate::use_virtualenv("/tungstenfs/groups/gbioinfo/sharedSoft/virtualenvs/r-4.1-bioc-3.13-reticulate-keras-2.4.0-tensorflow-2.4.0-gpu/")
-# GPU execution
-Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
-ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
-reticulate::py_config()
+## Specific setup for xenon execution :
+#reticulate::use_virtualenv("/tungstenfs/groups/gbioinfo/sharedSoft/virtualenvs/r-4.1-bioc-3.13-reticulate-keras-2.4.0-tensorflow-2.4.0-gpu/")
+## GPU execution
+# Sys.setenv("CUDA_VISIBLE_DEVICES" = "1" ) # Define visible  GPU devices
+# ngpus=length(strsplit(Sys.getenv("CUDA_VISIBLE_DEVICES"),",")[[1]])
+# reticulate::py_config()
+```
+
+
+```{r, include=FALSE}
 library(keras)
 library(tensorflow)
 library(Matrix)
@@ -57,11 +52,7 @@ library(Rtsne)
 library(rsvd)
 library(RColorBrewer)
 K <- backend() # manual add-on
-
 ```
-
-
-
 
 
 
@@ -235,7 +226,7 @@ vae_loss <- function(x, x_decoded_mean){
 
 
 #### Custom correlation function to keep track of. 
-#### Notice that all mathematical operation NEED to be performed using the Keras backend (e.g K$mean):
+#### Notice that all mathematical operations NEED to be performed using the Keras backend (e.g K$mean):
 cor_metric <- function(y_true, y_pred) {  
     x = y_true
     y = y_pred
