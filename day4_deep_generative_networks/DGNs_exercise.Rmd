@@ -133,7 +133,6 @@ sc_train_x=array(M, dim= c(dim(M)[1], prod(dim(M)[-1]))) # convert to an array
 sc_train_x=t(sc_train_x)                                 #Need to transpose before passing to the model
 rm(M)
 
-
 ##### Validation Data:
 M=combined.df.filtered[,holdback.samples]
 sc_test_x=array( M, dim= c(dim(M)[1], prod(dim(M)[-1]))) # convert to an array
@@ -164,7 +163,6 @@ if (tensorflow::tf$executing_eagerly())
 neck <- 32L # Latent (bottleneck) dimension
 drop_rate=0.2 #
 gene_dim <- ncol(sc_train_x)  #Number of features (genes) in your dataset
-latent_dim <- neck
 epsilon_std <- 0.8  ##Standard deviation of the prior latent distribution (vanilla =1)
 var_prior <- epsilon_std**2
 log_var_prior <- log(var_prior)
@@ -178,13 +176,13 @@ h <- layer_dense(h, 4 * neck,activation="elu")
 h <- layer_dropout(h, rate = drop_rate)
 h <- layer_dense(h, 2 * neck, activation = "elu")
 h <- layer_dropout(h, rate = drop_rate)
-z_mean <- layer_dense(h, latent_dim)
-z_log_var <- layer_dense(h, latent_dim)
+z_mean <- layer_dense(h, neck)
+z_log_var <- layer_dense(h, neck)
 
 #### Sampling from the latent space:
 sampling <- function(arg){
-    z_mean <- arg[, 1:(latent_dim)]
-    z_log_var <- arg[, (latent_dim + 1):(2 * latent_dim)]
+    z_mean <- arg[, 1:(neck)]
+    z_log_var <- arg[, (neck + 1):(2 * neck)]
     epsilon <- K$random_normal(
         shape = c(K$shape(z_mean)[[1]]), 
         mean=0.,
@@ -214,12 +212,10 @@ x_decoded_mean <- decoder_mean(h_decoded)
 
 # end-to-end autoencoder (again notice the use of the functional API):
 vae <- keras_model(x, x_decoded_mean)
-
 # encoder, from inputs to latent space, also using the functional API:
 encoder <- keras_model(x, z_mean)
-
 # generator, from latent space to reconstructed inputs
-decoder_input <- layer_input(shape = latent_dim)
+decoder_input <- layer_input(shape = neck)
 h_decoded_2 <- decoder_h(decoder_input)
 x_decoded_mean_2 <- decoder_mean(h_decoded_2)
 generator <- keras_model(decoder_input, x_decoded_mean_2)
@@ -336,17 +332,6 @@ early_stopping <- callback_early_stopping(monitor = "val_loss", min_delta = 0,
 ```
 
 
-```{r  eval=FALSE}
-##### Tensorboard callback (do not execute):
-indir <- "/Users/papapana/Desktop/XENON/papapana/DEEP_LEARNING/Autoencoders/BatchCor_paper" # When running locally
-log_dir <-  paste0(indir,"/logs/run_exercise_DGNs/")
-system(paste0 ("rm -rf ", log_dir, "/*")  )
-system("pkill tensorboard")
-#options(browser = function(url) browseURL(url, browser = "/usr/bin/firefox")) # When running on xenon 
-options(browser = function(url) browseURL(url, browser ="/usr/bin/open"  ))    # When running locally (MacOS)
-tensorboard( log_dir,  launch_browser = TRUE )
-tnsrb <- callback_tensorboard( log_dir )
-```
 
 
 
