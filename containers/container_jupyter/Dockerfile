@@ -1,4 +1,4 @@
-FROM jupyter/minimal-notebook:latest
+FROM jupyter/minimal-notebook:lab-3.3.4
 
 USER root
 RUN cat /etc/skel/.bashrc >> /etc/bash.bashrc

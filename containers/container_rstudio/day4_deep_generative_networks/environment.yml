@@ -20,7 +20,7 @@ dependencies:
     - seaborn
     - anndata
     - statsmodels
-    - scvi
+    - scvi-tools
     - numba
     - tables
     - leidenalg

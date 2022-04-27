@@ -1,0 +1,454 @@
+---
+title: "RNA velocity analysis with velociraptor"
+author: "Charlotte Soneson"
+date: "April 26, 2022"
+output:
+  rmarkdown::html_document:
+    highlight: pygments
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    fig_width: 5
+    number_sections: false
+    theme: united
+bibliography: "rna-velocity.bib"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  cache = FALSE,
+  collapse = TRUE,
+  comment = "#>",
+  crop = NA,
+  eval = TRUE
+)
+suppressPackageStartupMessages({
+    require(BiocStyle)
+})
+htmltools::tagList(rmarkdown::html_dependency_font_awesome())
+
+# reticulate::use_condaenv(basilisk:::.obtainEnvironmentPath(velociraptor:::velo.env))
+```
+
+# Introduction
+
+This document illustrates the basic principles of performing RNA velocity 
+analysis in R using the `r Biocpkg("velociraptor")` package, which provides 
+a wrapper around the [_scVelo_](https://scvelo.readthedocs.io/) python package. 
+The document also contains exercises, indicated by **Exercise**. 
+
+# Resources
+
+The following resources provide additional details about the various steps 
+covered in the document: 
+
+* _scVelo_ documentation: https://scvelo.readthedocs.io/
+* `r Biocpkg("velociraptor")` landing page with links to documentation: https://www.bioconductor.org/packages/velociraptor/
+
+# Data loading
+
+We will use an example data set of pancreatic development obtained from 
+@Bastidas-Ponce2019-pancreas. The _RNAVelocityData.html_ report provides 
+all the details on how to generate the `SingleCellExperiment` object that 
+will be used for the analysis. 
+If a smaller data set is desired, for quicker execution time, the pancreas 
+data set can be exchanged for the spermatogenesis data set from 
+@Hermann2018-spermatogenesis, also generated in _RNAVelocityData.html_. 
+
+```{r, fig.width = 8}
+suppressPackageStartupMessages({
+    library(SingleCellExperiment)
+    library(scater)
+    library(basilisk)
+})
+sce <- readRDS("pancreas.rds")
+sce
+scater::plotReducedDim(sce, dimred = "X_umap", colour_by = "clusters")
+```
+
+**Exercise**: Confirm that the example data set contains both spliced and unspliced counts. What are the corresponding assay names? What fraction of the total UMI count is assigned to each of the types?
+
+```{r}
+assayNames(sce)
+total <- sum(assay(sce, "spliced")) + sum(assay(sce, "unspliced"))
+(frac_spliced <- sum(assay(sce, "spliced"))/total)
+(frac_unspliced <- sum(assay(sce, "unspliced"))/total)
+```
+
+
+# RNA velocity estimation
+
+Next, we will perform the RNA velocity estimation. 
+In `r Biocpkg("velociraptor")`, this is done using the `scvelo()` function, which provides a wrapper around the main functionality of _scVelo_. 
+Take a moment to study the documentation of `scvelo()` - you will see for example that all the modes of _scVelo_ (steady-state, stochastic, dynamical) can be used. 
+In addition, the argument `use.theirs` can be set to `TRUE` to perform gene filtering and normalization using _scVelo_. 
+If set to `FALSE` (default), these steps will be performed in R, which can be useful in order to increase consistency with the rest of an R-based pipeline. 
+For a confirmation of the ability to reproduce _scVelo_ results with `r Biocpkg("velociraptor")`, see the _CompareVelociraptorScvelo.html_ report. 
+
+**Exercise**: Run the RNA velocity analysis using the `velociraptor::scvelo()` function. 
+Use the dynamical mode, and provide only the top 1000 of the estimated highly variable genes (stored in the metadata of the example data). 
+The number and precise selection of genes to use for the velocity estimation can have a considerable impact on the results (we will come back to this later), and the "right" selection will depend on the complexity and characteristics of the data set at hand. 
+Also, use the 50 nearest neighbors to calculate moments. 
+This function takes a few minutes to complete, and you can follow the different steps in the messages printed by the function. 
+In the meanwhile, think about what you expect as the output from the function (e.g., object type, dimensions).
+
+```{r}
+suppressPackageStartupMessages({
+    library(velociraptor)
+})
+velo.out <- velociraptor::scvelo(
+    x = sce, 
+    subset.row = metadata(sce)$HVGs[1:1000],
+    mode = "dynamical",
+    scvelo.params = list(moments = list(n_neighbors = 50L))
+)
+```
+
+**Exercise**:
+
+* What is the class of `velo.out`? 
+* What are the dimensions? Is that what you would expect? 
+
+```{r}
+velo.out
+```
+
+Below we will go through the different steps covered by `scvelo()` in more detail, and see where the output is stored in the returned object. 
+
+### Compute neighbors and moments
+
+The first step performed by `scvelo()` is to estimate moments (mean and uncentered variance) of the abundances for each cell. 
+The moments are calculated across a small set of neighboring cells (in the PCA space), for increased stability (think of it as a kind of smoothing, or imputation). 
+Two layers, `Ms` and `Mu`, which are the first order moments (means) for spliced and unspliced abundances, are added to the data object.
+
+```{r}
+## nearest neighbors (note that the nearest neighbor to each cell is the 
+## cell itself)
+head(metadata(velo.out)$neighbors$indices)
+
+## Note Ms and Mu assays
+assayNames(velo.out)
+```
+
+**Exercise**: Investigate how the number of neighbors impacts the phase plot (the scatterplot of spliced vs unspliced normalized abundances). 
+While there are ways of running individual functions from _scVelo_ directly in the R session (e.g., as you have seen earlier today using `reticulate`), the easiest way here may be to run `velociraptor::scvelo()` repeatedly, with different number of neighbors in the moment calculations. 
+Since we are not interested in the velocity estimates at this point, you can use the steady-state mode, which is much faster than the dynamical mode. 
+For each number of neighbors, generate the phase plot for specific genes (e.g., `Sulf2` and `Xist`) using the `velociraptor::plotVelocity()` function. 
+
+```{r, fig.width = 8}
+out5 <- velociraptor::scvelo(
+    x = sce, 
+    subset.row = metadata(sce)$HVGs[1:1300],
+    mode = "steady_state",
+    scvelo.params = list(moments = list(n_neighbors = 5L))
+)
+out5$clusters <- sce$clusters
+plotVelocity(out5, genes = c("Sulf2", "Xist"), genes.per.row = 2, 
+             color_by = "clusters", which.plots = "phase")
+
+out30 <- velociraptor::scvelo(
+    x = sce, 
+    subset.row = metadata(sce)$HVGs[1:1300],
+    mode = "steady_state",
+    scvelo.params = list(moments = list(n_neighbors = 30L))
+)
+out30$clusters <- sce$clusters
+plotVelocity(out30, genes = c("Sulf2", "Xist"), genes.per.row = 2, 
+             color_by = "clusters", which.plots = "phase")
+
+out100 <- velociraptor::scvelo(
+    x = sce, 
+    subset.row = metadata(sce)$HVGs[1:1300],
+    mode = "steady_state",
+    scvelo.params = list(moments = list(n_neighbors = 100L))
+)
+out100$clusters <- sce$clusters
+plotVelocity(out100, genes = c("Sulf2", "Xist"), genes.per.row = 2, 
+             color_by = "clusters", which.plots = "phase")
+
+out500 <- velociraptor::scvelo(
+    x = sce, 
+    subset.row = metadata(sce)$HVGs[1:1300],
+    mode = "steady_state",
+    scvelo.params = list(moments = list(n_neighbors = 500L))
+)
+out500$clusters <- sce$clusters
+plotVelocity(out500, genes = c("Sulf2", "Xist"), genes.per.row = 2, 
+             color_by = "clusters", which.plots = "phase")
+```
+
+### Recover dynamics
+
+Once the data is preprocessed, the next step fits the model and infers transcription rates, splicing rates and degradation rates for each gene, as well as cell-specific latent times and transcriptional states. 
+_scVelo_ uses an EM algorithm for the estimation, iterating between the E-step (where each observation is assigned a time and a state (induction, repression, or steady state)) and the M-step (where the rate parameters are estimated), as outlined in the figure below from @Bergen2020-scvelo.
+
+![](rna-velocity-figures/BergenFig1.jpg)
+
+This step is only required for the dynamical model. 
+It adds several columns to `rowData(sce)` (see [https://scvelo.readthedocs.io/DynamicalModeling.html](https://scvelo.readthedocs.io/DynamicalModeling.html)), including:
+
+* $R^2$ of the linear fit to the steady-state cells in the phase plot (`fit_r2`). 
+Note that this can be negative, if the obtained fit is worse than just using a straight line at the mean. 
+This is used to determine which genes are used for the downstream analysis and projection of velocities into a low-dimensional space.
+* transcription rate estimates (`fit_alpha`)
+* splicing rate estimates (`fit_beta`)
+* degradation rate estimates (`fit_gamma`)
+* estimates of switching time points (`fit_t_`)
+* the likelihood value of the fit (`fit_likelihood`), averaged across all cells. 
+The likelihood value for a gene and a cell indicates how well the cell is described by the learned phase trajectory.
+
+```{r}
+head(rowData(velo.out)[rowData(velo.out)$velocity_genes, ])
+```
+
+### Compute velocities
+
+Once the kinetic rate parameters are estimated, the actual velocities are estimated based on these. 
+This step adds a velocity layer to the data object, and the `velocity_genes` column in the row data. 
+This column indicates whether the fit for a gene is considered ‘good enough’ for downstream use. 
+Specifically, it requires `fit_r2`, `fit_likelihood` and `fit_gamma` to exceed certain thresholds, `fit_scaling` to be within a certain range, and that both the unspliced and spliced mean values are nonzero (see the [scVelo code](https://github.com/theislab/scvelo/blob/1805ab4a72d3f34496f0ef246500a159f619d3a2/scvelo/tools/velocity.py) for more details).
+
+```{r}
+## Recreate the determination of velocity genes based on the estimated values and 
+## check that it agrees with the velocity_genes column returned by scVelo. 
+rd <- rowData(velo.out)
+perc <- quantile(rd$fit_scaling[!is.na(rd$fit_scaling)], probs = c(0.1, 0.9))
+table(crit = rd$fit_r2 > 0.01 & 
+          rd$fit_gamma > 0.01 & 
+          rd$fit_likelihood > 0.001 & 
+          rd$fit_scaling > min(perc[1], 0.03) & 
+          rd$fit_scaling < max(perc[2], 3) & 
+          rowSums(assay(velo.out, "Ms")) > 0 & 
+          rowSums(assay(velo.out, "Mu")) > 0, 
+      vel = rd$velocity_genes, useNA = "ifany")
+```
+
+### Compute the velocity graph
+
+At this point, we have estimated the velocities - these are vectors in a $K$-dimensional space, where $K$ is the number of retained genes. 
+In order to use these velocities for downstream applications, such as estimating the future state of an individual cell or generating low-dimensional visualizations, we next estimate a so called _velocity graph_. 
+To this end, _scVelo_ calculates cosine similarities between the velocity vector for each cell and the displacement vector from that cell to each other (neighboring) cell:
+$$\pi_{ij}=cos\angle(\delta_{ij}, v_i),$$where $\delta_{ij}=s_j-s_i$ is the displacement vector from cell $i$ to cell $j$ in gene expression space, and $v_i$ is the velocity vector of cell $i$.
+The cosine similarity takes values between -1 and +1, and a large value indicates that cell $i$ has a high probability of transitioning towards cell $j$ (since its velocity vector points towards cell $j$).
+The velocity graph is stored in the `uns` slot of the data object (and subsequently propagated to the `metadata` of the returned `SingleCellExperiment`), and is represented by a sparse $N\times N$ matrix (where $N$ is the number of cells).
+There is also a `velocity_graph_neg`, which is a matrix of the same size as `velocity_graph`, containing the negative cosine similarities.
+
+```{r}
+## Velocity graph
+dim(metadata(velo.out)$velocity_graph)
+metadata(velo.out)$velocity_graph[1:5, 1:5]
+```
+
+If you look closely, you note that the number of non-zero elements in each row of the velocity graph (after considering both positive and negative cosine distances) is larger than the number of neighbors. 
+The reason for this is that with default settings, _scVelo_ performs a recursive neighbor finding (with two iterations). 
+This can be controlled by the `n_recurse_neighbors` arguments to the velocity graph calculations. 
+
+### Compute latent time and pseudotime
+
+It is often of interest to obtain an ordering of the cells along a trajectory. 
+_scVelo_ provides two different approaches for this: pseudotime and latent time. 
+The velocity pseudotime is obtained via a diffusion random walk on the velocity graph, and measures how many steps (on average) it takes to reach a given cell from one of the root cells.
+The root cells are obtained from the transition matrix.
+The latent time is obtained from the transcriptional dynamics fit, by relating gene-specific times (position along the phase curve) to a "universal" latent time, shared across genes.
+
+```{r}
+head(colData(velo.out))
+```
+
+# Combine input and output
+
+Note that the results of `scvelo()` are not added to the input `SingleCellExperiment` object, since the two objects can have different dimensions (in particular note the difference in the number of genes). 
+Thus, in order to use information from the velocity calculations together with information from the original object, we need to copy slots from one object to the other. 
+
+**Exercise**: Copy the reduced dimension representations and cell type annotations from the original `SingleCellExperiment` object to the output of `scvelo()`, and use the latter to construct UMAP representations colored by various parameters (e.g., the cell types, velocity pseudotime and latent time). 
+
+```{r, fig.width = 8, fig.height = 12}
+stopifnot(all(colnames(sce) == colnames(velo.out)))
+reducedDims(velo.out) <- reducedDims(sce)
+velo.out$clusters <- sce$clusters
+cowplot::plot_grid(
+    scater::plotReducedDim(velo.out, dimred = "X_umap", colour_by = "clusters"),
+    scater::plotReducedDim(velo.out, dimred = "X_umap", colour_by = "velocity_pseudotime"),
+    scater::plotReducedDim(velo.out, dimred = "X_umap", colour_by = "latent_time"),
+    ncol = 1, align = "v"
+)
+```
+
+As we already saw above, the `rowData` and `colData` of `velo.out` contain the values of various parameters estimated by `scvelo()`: 
+
+```{r}
+head(rowData(velo.out)[rowData(velo.out)$velocity_genes, ])
+
+head(colData(velo.out))
+```
+
+More information about the interpretation of these parameters can be found in the [scVelo documentation](https://scvelo.readthedocs.io). 
+Let's, for example, plot the distribution of transcription, splicing and degradation rates for all velocity genes with fit likelihood larger than 0.1:
+
+```{r, fig.width = 12, fig.height = 4}
+suppressPackageStartupMessages({
+    library(dplyr)
+})
+plotdf <- as.data.frame(rowData(velo.out)) %>%
+    dplyr::filter(fit_likelihood > 0.1 & velocity_genes)
+dim(plotdf)
+cowplot::plot_grid(
+    ggplot(plotdf, aes(x = fit_alpha)) + geom_histogram(bins = 50) + 
+        theme_minimal() + scale_x_log10(),
+    ggplot(plotdf, aes(x = fit_beta)) + geom_histogram(bins = 50) + 
+        theme_minimal() + scale_x_log10(),
+    ggplot(plotdf, aes(x = fit_gamma)) + geom_histogram(bins = 50) + 
+        theme_minimal() + scale_x_log10(),
+    nrow = 1
+)
+```
+
+# Velocity plots
+
+The `r Biocpkg("velociraptor")` package also provides plotting functions to visualize the RNA velocity results. 
+For example, we can embed the estimated velocities into a provided low-dimensional space. 
+In order to visualize the velocities in a lower-dimensional embedding, we convert the cosine similarities in the velocity graph to _transition probabilities_ of cell-to-cell transitions by applying an exponential kernel:
+$$\tilde{\pi}_{ij}=\frac{1}{z_i}exp(\frac{\pi_{ij}}{\sigma_i^2}).$$
+The $z_i$ are normalization factors and $\sigma_i$ is an adaptive kernel width parameter.
+These transition probabilities are used to project the velocities into a low-dimensional embedding. 
+This is achieved by weighting the normalized displacement vectors from a cell to all other cells in the low-dimensional space by the transition probabilities for cell, and taking the resulting weighted average as the low-dimensional velocity vector.
+More precisely, if $$\tilde{\delta}_{ij}=\frac{\tilde{s}_j-\tilde{s}_i}{\|\tilde{s}_j-\tilde{s}_i\|}$$are the normalized displacement vectors in the low-dimensional embedding, the embedded velocity is estimated by $$\tilde{v}_i=\sum_{j\neq i}\left(\tilde{\pi}_{ij} - \frac{1}{n}\right)\tilde{\delta}_{ij}.$$
+The $1/n$ term is included to make the projected velocity zero when the transition probabilities represent a uniform distribution. 
+
+```{r, fig.width = 7}
+suppressPackageStartupMessages({
+    library(ggplot2)
+})
+
+## PCA
+embedded <- velociraptor::embedVelocity(reducedDim(velo.out, "X_pca")[, 1:2], velo.out)
+grid.df <- velociraptor::gridVectors(reducedDim(velo.out, "X_pca")[, 1:2], embedded)
+plotReducedDim(velo.out, dimred = "X_pca", colour_by = "velocity_pseudotime") +
+    geom_segment(data = grid.df,
+                 mapping = aes(x = start.1, y = start.2,
+                               xend = end.1, yend = end.2),
+                 arrow = arrow(length = unit(0.05, "inches")))
+
+## UMAP
+embedded <- velociraptor::embedVelocity(reducedDim(velo.out, "X_umap"), velo.out)
+grid.df <- velociraptor::gridVectors(reducedDim(velo.out, "X_umap"), embedded)
+plotReducedDim(velo.out, dimred = "X_umap", colour_by = "velocity_pseudotime") +
+    geom_segment(data = grid.df,
+                 mapping = aes(x = start.1, y = start.2,
+                               xend = end.1, yend = end.2),
+                 arrow = arrow(length = unit(0.05, "inches")))
+```
+
+Next, we will look at individual genes via their phase plots. 
+This is often useful in order to understand how the velocities are affected/supported by specific genes. 
+We can of course plot genes that we are already familiar with and that we know are related to the process of interest. 
+We can also extract genes with particularly strong influence on the velocity results. 
+'Driver genes', which display a strong dynamic behavior, can for example be detected via their high likelihoods in the dynamic model.
+
+**Exercise**: Use the `velociraptor::plotVelocity()` function to generate phase plots and UMAP embedding plots colored by velocity and gene expression, respectively, for the six genes with the largest fit likelihoods. 
+
+```{r, fig.width = 9, fig.height = 18}
+toplh <- rownames(as.data.frame(rowData(velo.out)) %>%
+    dplyr::arrange(desc(fit_likelihood)) %>%
+    head())
+toplh
+plotVelocity(velo.out, use.dimred = "X_umap", genes = toplh[1:6],
+             color_by = "clusters")
+```
+
+Finally, we will illustrate two summary statistics returned by _scVelo_:
+
+* The length of the velocity vector encodes the speed or rate of differentiation.
+* The ‘velocity confidence’ provides a measure of the coherence of the velocity vector field, that is, how well the velocity vector for a cell correlates with those of its neighbors.
+
+```{r, fig.width = 6.5, fig.height = 8}
+cowplot::plot_grid(
+    scater::plotReducedDim(velo.out, dimred = "X_umap", colour_by = "velocity_length"),
+    scater::plotReducedDim(velo.out, dimred = "X_umap", colour_by = "velocity_confidence"),
+    ncol = 1, align = "v"
+)
+```
+
+# Modifying the gene selection
+
+In the analysis above we used the most highly variable genes in the data set. 
+However, the velocity analysis can be strongly dependent on the gene selection, especially if there are multiple dynamic processes at play in the data set. 
+
+**Exercise**: Rerun the velocity estimation using only genes found to be associated with the cell cycle, and plot the velocity embedding.
+For example, @Macosko2015-dropseq provide a list of 668 mouse genes with expression patterns that varied along the cell cycle at a false discovery rate of 5% (Table S2 of https://www.cell.com/fulltext/S0092-8674(15)00549-8).
+
+```{r, fig.width = 8}
+cell_cycle_genes <- read.delim("Macosko_TableS2_mouse.txt", header = FALSE)[, 1]
+length(cell_cycle_genes)
+length(intersect(cell_cycle_genes, rownames(sce)))
+cell_cycle_genes <- intersect(cell_cycle_genes, rownames(sce))
+
+velocc <- velociraptor::scvelo(sce, subset.row = cell_cycle_genes, 
+                               mode = "dynamical")
+reducedDims(velocc) <- reducedDims(sce)
+velocc$clusters <- sce$clusters
+embedded <- velociraptor::embedVelocity(reducedDim(velocc, "X_umap"), velocc)
+grid.df <- velociraptor::gridVectors(reducedDim(velocc, "X_umap"), embedded)
+plotReducedDim(velocc, "X_umap", colour_by = "clusters") +
+    geom_segment(data = grid.df,
+                 mapping = aes(x = start.1, y = start.2,
+                               xend = end.1, yend = end.2),
+                 arrow = arrow(length = unit(0.05, "inches")))
+```
+
+Similarly, run the velocity analysis on the highly variable genes that are _not_ also among the cell cycle-associated genes. 
+What do you expect in this case? 
+
+```{r, fig.width = 8}
+velonocc <- velociraptor::scvelo(sce, 
+                                 subset.row = setdiff(metadata(sce)$HVGs[1:1000], cell_cycle_genes), 
+                                 mode = "dynamical")
+reducedDims(velonocc) <- reducedDims(sce)
+velonocc$clusters <- sce$clusters
+embedded <- velociraptor::embedVelocity(reducedDim(velonocc, "X_umap"), velonocc)
+grid.df <- velociraptor::gridVectors(reducedDim(velonocc, "X_umap"), embedded)
+plotReducedDim(velonocc, "X_umap", colour_by = "clusters") +
+    geom_segment(data = grid.df,
+                 mapping = aes(x = start.1, y = start.2,
+                               xend = end.1, yend = end.2),
+                 arrow = arrow(length = unit(0.05, "inches")))
+```
+
+# Extracting cluster-specific dynamical genes
+
+While `r Biocpkg("velociraptor")` wraps the main velocity workflow from _scVelo_, the latter contains also additional functionality that may be useful. 
+Most of these functions are, however, also accessible from within R, by explicitly calling them in a basilisk environment. 
+Here, we will illustrate this by extracting cluster-wise "velocity genes", which are genes that show differences in velocity between clusters. 
+See [the _scVelo_ documentation](https://scvelo.readthedocs.io/scvelo.tl.rank_velocity_genes/) for more details. 
+
+```{r, fig.width = 9, fig.height = 9}
+## Start basilisk process using the environment from velociraptor
+velproc <- basilisk::basiliskStart(velociraptor:::velo.env)
+
+## Call a function inside the basilisk process
+gr <- basilisk::basiliskRun(proc = velproc, function(sce) { 
+    scv <- reticulate::import("scvelo")
+    ad <- zellkonverter::SCE2AnnData(sce)   ## Convert SCE to AnnData
+    scv$tl$rank_velocity_genes(ad, groupby = 'clusters')   ## Apply function
+    df = scv$get_df(ad, 'rank_velocity_genes/names')   ## Extract results
+    as.data.frame(df)   ## Return pure R object
+}, sce = velo.out)
+
+## Close the process
+basilisk::basiliskStop(velproc)
+
+head(gr)
+## Genes with different velocity in Beta cells
+plotVelocity(velo.out, use.dimred = "X_umap", genes = gr$Beta[1:3],
+             color_by = "clusters")
+## Genes with different velocity in Ductal cells
+plotVelocity(velo.out, use.dimred = "X_umap", genes = gr$Ductal[1:3],
+             color_by = "clusters")
+```
+
+# References
+
+

@@ -7,9 +7,9 @@ dependencies:
   - pip
   - pip:
     - scanpy>=1.9.0
-    - scvi-tools>=0.15.4
-    - git+https://github.com/theislab/squidpy@master
-    - git+https://github.com/giovp/eggplant@master
+    - scvi-tools>=0.16.0
+    - squidpy>=1.2.0
+    - git+https://github.com/almaan/eggplant.git
     - scikit-misc
     - tangram-sc
     - tissuumaps

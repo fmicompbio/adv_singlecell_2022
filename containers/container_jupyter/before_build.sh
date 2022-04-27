@@ -19,16 +19,33 @@ dependencies:
 
 }
 
+BUILDDIR=containers/container_jupyter/
+
 for DIR in day?_*
 do
-    mkdir -p containers/container_jupyter/$DIR
+    mkdir -p $BUILDDIR/$DIR
     # cp $DIR/R_requirements.R container_rstudio/$DIR
 
     if [ -f $DIR/environment.yml ]
     then
-        cp $DIR/environment.yml containers/container_jupyter/$DIR
+        cp $DIR/environment.yml $BUILDDIR/$DIR/tmp.yml
     else 
         echo "translating $PWD/$DIR/requirements.txt"
-        pip_to_conda $DIR/requirements.txt containers/container_jupyter/$DIR/environment.yml
+        pip_to_conda $DIR/requirements.txt $BUILDDIR/$DIR/tmp.yml
     fi
+
+    if [ -f $BUILDDIR/$DIR/environment.yml ]
+    then
+      diff -q $BUILDDIR/$DIR/tmp.yml $BUILDDIR/$DIR/environment.yml 
+      if [ $? != 0 ]
+      then
+        echo "updating yml file of $DIR"
+        mv $BUILDDIR/$DIR/tmp.yml $BUILDDIR/$DIR/environment.yml
+      else
+        echo "no need to update yml of $DIR"
+      fi
+    else 
+      mv $BUILDDIR/$DIR/tmp.yml $BUILDDIR/$DIR/environment.yml
+    fi
+      rm $BUILDDIR/$DIR/tmp.yml
 done
