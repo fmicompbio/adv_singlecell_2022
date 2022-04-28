@@ -48,9 +48,9 @@ For extensive documentation on the R `keras` installation see:
 
 
 At this point all our **R** and `keras` package requirements are in place so we are ready to build a first `keras` model!
-First we need to load the `keras` library:
+First we need to setup the conda environment via reticulate load the `keras` library:
 
-```{r libload, eval=FALSE}
+```{r libload}
 suppressPackageStartupMessages({
 reticulate::use_condaenv("day4_deep_generative_networks")
 library(tensorflow)

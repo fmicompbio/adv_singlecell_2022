@@ -1,7 +1,7 @@
 ---
 title: "Basic Keras example"
 author: "Panagiotis Papasaikas"
-date: "2021-08-19"
+date: "2022-04-25"
 output:
   html_document:
     css: styles.css
@@ -45,7 +45,7 @@ For extensive documentation on the R `keras` installation see:
 
 
 At this point all our **R** and `keras` package requirements are in place so we are ready to build a first `keras` model!
-First we need to load the `keras` library:
+First we need to setup the conda environment via reticulate load the `keras` library:
 
 
 ```r
@@ -53,6 +53,8 @@ suppressPackageStartupMessages({
 reticulate::use_condaenv("day4_deep_generative_networks")
 library(tensorflow)
 library(keras)
+library(ggplot2)
+library(gridExtra)
 })
 ```
 
@@ -68,7 +70,13 @@ library(keras)
 ```r
 #loading the keras inbuilt mnist dataset
 data<-dataset_mnist()
+```
 
+```
+## Loaded Tensorflow version 2.8.0
+```
+
+```r
 #separating train and test file
 train_x<-data$train$x
 train_y<-data$train$y
@@ -113,13 +121,14 @@ summary(model)
 ```
 ## Model: "sequential"
 ## ________________________________________________________________________________
-## Layer (type)                        Output Shape                    Param #     
+##  Layer (type)                       Output Shape                    Param #     
 ## ================================================================================
-## dense_1 (Dense)                     (None, 784)                     615440      
-## ________________________________________________________________________________
-## dropout (Dropout)                   (None, 784)                     0           
-## ________________________________________________________________________________
-## dense (Dense)                       (None, 10)                      7850        
+##  dense_1 (Dense)                    (None, 784)                     615440      
+##                                                                                 
+##  dropout (Dropout)                  (None, 784)                     0           
+##                                                                                 
+##  dense (Dense)                      (None, 10)                      7850        
+##                                                                                 
 ## ================================================================================
 ## Total params: 623,290
 ## Trainable params: 623,290
@@ -305,15 +314,16 @@ summary(model_f)
 ```
 ## Model: "model"
 ## ________________________________________________________________________________
-## Layer (type)                        Output Shape                    Param #     
+##  Layer (type)                       Output Shape                    Param #     
 ## ================================================================================
-## input_1 (InputLayer)                [(None, 784)]                   0           
-## ________________________________________________________________________________
-## dense_3 (Dense)                     (None, 784)                     615440      
-## ________________________________________________________________________________
-## dropout_1 (Dropout)                 (None, 784)                     0           
-## ________________________________________________________________________________
-## dense_2 (Dense)                     (None, 10)                      7850        
+##  input_1 (InputLayer)               [(None, 784)]                   0           
+##                                                                                 
+##  dense_3 (Dense)                    (None, 784)                     615440      
+##                                                                                 
+##  dropout_1 (Dropout)                (None, 784)                     0           
+##                                                                                 
+##  dense_2 (Dense)                    (None, 10)                      7850        
+##                                                                                 
 ## ================================================================================
 ## Total params: 623,290
 ## Trainable params: 623,290
