@@ -32,17 +32,19 @@ Check https://docs.scvi-tools.org for more tutorials on using different models o
 
 
 ### Library loading and  preprocessing
-```{r libload, eval=FALSE}
+```{r libload}
 reticulate::use_condaenv("day4_deep_generative_networks")
 reticulate::py_config()
 ```
 
 
-```{python, class.source="pythonchunk", eval=FALSE}
+```{python, class.source="pythonchunk"}
 import scvi
 import scanpy as sc
+import matplotlib
 import matplotlib.pyplot as plt
-
+plt.switch_backend('agg')
+matplotlib.use("Agg", force=True)
 sc.set_figure_params(figsize=(4, 4))
 
 # All scvi-tools models require AnnData objects as input.
@@ -77,8 +79,7 @@ Run setup_anndata(), which alerts scvi-tools to the locations of various matrice
 In this dataset, there is a “cell_source” categorical covariate, and within each “cell_source”, multiple “donors”, “gender” and “age_group”. There are also two continuous covariates we’d like to correct for: “percent_mito” and “percent_ribo”. These covariates can be registered using the categorical_covariate_keys argument. If you only have one categorical covariate, you can also use the batch_key argument instead.
 
 
-```{python, class.source="pythonchunk", eval=FALSE}
-
+```{python, class.source="pythonchunk"}
 
 scvi.model.SCVI.setup_anndata(
     adata,
@@ -94,7 +95,7 @@ scvi.model.SCVI.setup_anndata(
 
 While we highlight the scVI model here, the API is consistent across all scvi-tools models.
 
-```{python, class.source="pythonchunk", eval=FALSE}
+```{python, class.source="pythonchunk"}
 
 model = scvi.model.SCVI(adata)
 
@@ -102,13 +103,13 @@ model = scvi.model.SCVI(adata)
 model
 
 # Train the model. This is quite slow in the absence of GPUs:
-model.train(max_epochs=40)
+# model.train(max_epochs=400)
 
 # Save the trained model:
-# model.save("my_model/")
+# model.save("/home/rstudio/workdir/adv_singlecell_2022/day4_deep_generative_networks/trained_models/scvi_model/")
 
 # Load a trained model:
-# model = scvi.model.SCVI.load("my_model/", adata=adata, use_gpu=True)
+model = scvi.model.SCVI.load("/home/rstudio/workdir/adv_singlecell_2022/day4_deep_generative_networks/trained_models/scvi_model/", adata=adata, use_gpu=False)
 
 ```
 
@@ -116,7 +117,7 @@ model.train(max_epochs=40)
 
 ### Obtaining model outputs
 
-```{python, class.source="pythonchunk", eval=FALSE}
+```{python, class.source="pythonchunk"}
 
 
 latent = model.get_latent_representation()
@@ -142,8 +143,7 @@ adata.layers["scvi_normalized"] = model.get_normalized_expression(
 
 ### Visualization 
 
-```{python, class.source="pythonchunk", eval=FALSE}
-
+```{python, class.source="pythonchunk"}
 #First, we demonstrate the presence of nuisance variation with respect to nuclei/whole cell, age group, and donor by plotting the UMAP results of the top 30 PCA components for the raw count data.
 # run PCA then generate UMAP plots
 sc.tl.pca(adata)
@@ -161,13 +161,18 @@ sc.pl.umap(
     ncols=2,
     frameon=False,
 )
+```
+![](Figures/scvi_noBC_1.png)
+
+![](Figures/scvi_noBC_2.png)
 
 
+```{python, class.source="pythonchunk"}
 # Now we use scVI latent space for UMAP generation to check if scVI successfully accounts for batch effects in the data.
 
 # use scVI latent space for UMAP generation
 sc.pp.neighbors(adata, use_rep="X_scVI")
-sc.tl.umap(adata, min_dist=0.3
+sc.tl.umap(adata, min_dist=0.3)
 
 sc.pl.umap(
     adata,
@@ -184,3 +189,12 @@ sc.pl.umap(
 
 
 ```
+
+![](Figures/scvi_BC_1.png)
+
+![](Figures/scvi_BC_2.png)
+
+
+
+
+
