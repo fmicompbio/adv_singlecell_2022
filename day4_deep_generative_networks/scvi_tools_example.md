@@ -16,10 +16,7 @@ editor_options:
 ---
 
 
-```{r setup, include=FALSE, class.source = "rchunk"}
-knitr::opts_chunk$set(echo = TRUE, warning = FALSE, eval = TRUE)
-options(width = 80)
-```
+
 
 ## Demonstration of scvi-tools
 This tutorial follows the workflow in:
@@ -32,13 +29,15 @@ Check https://docs.scvi-tools.org for more tutorials on using different models o
 
 
 ### Library loading and  preprocessing
-```{r libload, eval=FALSE}
+
+```r
 reticulate::use_condaenv("day4_deep_generative_networks")
 reticulate::py_config()
 ```
 
 
-```{python, class.source="pythonchunk"}
+
+```{.python .pythonchunk}
 import scvi
 import scanpy as sc
 import matplotlib
@@ -79,7 +78,8 @@ Run setup_anndata(), which alerts scvi-tools to the locations of various matrice
 In this dataset, there is a “cell_source” categorical covariate, and within each “cell_source”, multiple “donors”, “gender” and “age_group”. There are also two continuous covariates we’d like to correct for: “percent_mito” and “percent_ribo”. These covariates can be registered using the categorical_covariate_keys argument. If you only have one categorical covariate, you can also use the batch_key argument instead.
 
 
-```{python, class.source="pythonchunk"}
+
+```{.python .pythonchunk}
 
 scvi.model.SCVI.setup_anndata(
     adata,
@@ -95,7 +95,8 @@ scvi.model.SCVI.setup_anndata(
 
 While we highlight the scVI model here, the API is consistent across all scvi-tools models.
 
-```{python, class.source="pythonchunk"}
+
+```{.python .pythonchunk}
 
 model = scvi.model.SCVI(adata)
 
@@ -117,7 +118,8 @@ model = scvi.model.SCVI.load("/home/rstudio/workdir/adv_singlecell_2022/day4_dee
 
 ### Obtaining model outputs
 
-```{python, class.source="pythonchunk"}
+
+```{.python .pythonchunk}
 
 
 latent = model.get_latent_representation()
@@ -143,7 +145,8 @@ adata.layers["scvi_normalized"] = model.get_normalized_expression(
 
 ### Visualization 
 
-```{python, class.source="pythonchunk"}
+
+```{.python .pythonchunk}
 #First, we demonstrate the presence of nuisance variation with respect to nuclei/whole cell, age group, and donor by plotting the UMAP results of the top 30 PCA components for the raw count data.
 # run PCA then generate UMAP plots
 sc.tl.pca(adata)
@@ -167,7 +170,8 @@ sc.pl.umap(
 ![](Figures/scvi_noBC_2.png)
 
 
-```{python, class.source="pythonchunk"}
+
+```{.python .pythonchunk}
 # Now we use scVI latent space for UMAP generation to check if scVI successfully accounts for batch effects in the data.
 
 # use scVI latent space for UMAP generation
@@ -186,7 +190,6 @@ sc.pl.umap(
     ncols=2,
     frameon=False,
 )
-
 
 ```
 
