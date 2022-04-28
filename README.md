@@ -20,7 +20,7 @@ For more information and to apply, please visit: https://www.sib.swiss/training/
 | Tuesday, April 26 |                                                        |  
 |------------------:|:-------------------------------------------------------|  
 |      9:00 -  9:30 | Welcome and setup of working environment |  
-|      9:30 - 10:00 | Combining the best of two worlds: Python + R (*M. Stadler*) |  
+|      9:30 - 10:00 | Combining the best of two worlds: Python + R (*M. Stadler*, slides: `day1_python_and_R/01_introduction.html`) |  
 |     10:00 - 10:15 | *Break* |  
 |     10:15 - 11:15 | Combining the best of two worlds: Python + R (*M. Stadler*) |  
 |     11:15 - 12:00 | Differential analysis (*M. Robinson*, *P-L. Germain*) |  
@@ -34,9 +34,9 @@ For more information and to apply, please visit: https://www.sib.swiss/training/
 
 | Wednesday, April 27  |                                                        |  
 | -----------------:|:-------------------------------------------------------|  
-|      9:00 - 10:00 | Generating single-cell data (*S. Smallwood*) |  
+|      9:00 - 10:00 | Generating single-cell data (*S. Smallwood*, slides: `day2_experimental_approaches/Smallwood_Advanced_SC_Analysis_Basel_2022.pdf`) |  
 |     10:00 - 10:15 | *Break* |  
-|     10:15 - 11:15 | Multi-omics (*E. Dann*) |  
+|     10:15 - 11:15 | Multi-omics (*E. Dann*, slides: [google doc](https://docs.google.com/presentation/d/1xG20Nrm0Kd9-0Ou3fU39jfSyK9fFfynHQ_Y7EnUrSfw/edit?usp=sharing)) |  
 |     11:15 - 11:30 | *Break* |  
 |     11:30 - 12:30 | Multi-omics (*E. Dann*) |  
 |     12:30 - 14:00 | *Lunch* |  
