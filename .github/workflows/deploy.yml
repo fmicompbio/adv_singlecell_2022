@@ -1,0 +1,33 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+name: deploy
+
+jobs:
+  deploy:
+    runs-on: macOS-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prepare HTMLs to deploy
+        run: |
+          mkdir -p _deploy
+          cp day1_RNA_velocity/RNAVelocitySlides.html _deploy/day1_RNA_velocity_slides.html
+          
+      - name: Deploy 🚀
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: JamesIves/github-pages-deploy-action@releases/v3
+        with:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: _deploy
+          

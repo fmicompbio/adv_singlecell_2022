@@ -27,7 +27,7 @@ For more information and to apply, please visit: https://www.sib.swiss/training/
 |     12:00 - 13:30 | *Lunch* |  
 |     13:30 - 15:00 | Differential analysis (*M. Robinson*, *P-L. Germain*) |  
 |     15:00 - 15:15 | *Break* |  
-|     15:15 - 16:30 | RNA velocity (*C. Soneson*) |  
+|     15:15 - 16:30 | RNA velocity (*C. Soneson*, [slides](https://fmicompbio.github.io/adv_singlecell_2022/day1_RNA_velocity_slides.html)) |  
 |     16:30 - 16:45 | *Break* |  
 |     16:45 - 17:45 | RNA velocity (*C. Soneson*) |  
 
