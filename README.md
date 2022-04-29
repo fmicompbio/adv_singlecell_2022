@@ -46,7 +46,7 @@ For more information and to apply, please visit: https://www.sib.swiss/training/
 
 | Thursday, April 28    |                                                        |  
 | -----------------:|:-------------------------------------------------------|  
-|      9:00 - 10:30 | Spatial transcriptomics (*G. Palla*, *K. Yamauchi*) |  
+|      9:00 - 10:30 | Spatial transcriptomics (*G. Palla*, *K. Yamauchi*, [slides](https://fmicompbio.github.io/adv_singlecell_2022/day3_spatial_transcriptomics__202204_advomics_slides.pdf)) |  
 |     10:30 - 10:45 | *Break* |  
 |     10:45 - 12:00 | Spatial transcriptomics (*G. Palla*, *K. Yamauchi*) |  
 |     12:00 - 13:30 | *Lunch* |  
