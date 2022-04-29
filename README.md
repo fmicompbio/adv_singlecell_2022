@@ -34,7 +34,7 @@ For more information and to apply, please visit: https://www.sib.swiss/training/
 
 | Wednesday, April 27  |                                                        |  
 | -----------------:|:-------------------------------------------------------|  
-|      9:00 - 10:00 | Generating single-cell data (*S. Smallwood*, [slides](https://fmicompbio.github.io/adv_singlecell_2022/day2_experimental_approache__Smallwood_Advanced_SC_Analysis_Basel_2022.pdf) |  
+|      9:00 - 10:00 | Generating single-cell data (*S. Smallwood*, [slides](https://fmicompbio.github.io/adv_singlecell_2022/day2_experimental_approaches__Smallwood_Advanced_SC_Analysis_Basel_2022.pdf)) |  
 |     10:00 - 10:15 | *Break* |  
 |     10:15 - 11:15 | Multi-omics (*E. Dann*, slides: [google doc](https://docs.google.com/presentation/d/1xG20Nrm0Kd9-0Ou3fU39jfSyK9fFfynHQ_Y7EnUrSfw/edit?usp=sharing)) |  
 |     11:15 - 11:30 | *Break* |  
