@@ -1,0 +1,131 @@
+---
+title: "Differential State Analysis - exercise on cell type specificity"
+author: "Pierre-Luc"
+date: "4/19/2022"
+output: html_document
+---
+
+```{r}
+suppressPackageStartupMessages({
+  library(SingleCellExperiment) # core sc infrastructures
+  library(scuttle) # lots of sc-related functions
+  library(sechm) # simplifies making heatmaps from SE-like objects
+  library(edgeR) # differential expression analysis
+  library(ggplot2) # for plotting
+  library(BiocParallel) # for multithreading
+})
+```
+
+We take the flattened pseudo-bulk SE we had:
+
+```{r}
+pb <- readRDS("/data/day1_differential_analysis/DS_pb.rds")
+pb
+```
+
+Let's have a look at the union of differentially-expressed genes (DEGs):
+
+```{r, fig.width=8, fig.height=4}
+degs <- row.names(pb)[rowSums(as.matrix(rowData(pb))<0.05,na.rm=TRUE)>0]
+sechm(pb, degs, assayName="logFC", row_title="Union of DEGs")
+```
+
+Given the high similarity between the responses across cell types, how can we best identify genes that respond specifically in one cell type? For example in Endothelial cells?
+
+Can we answer that question using the GLMs framework?
+
+
+
+## Towards one kind of solution...
+
+Using GLMs, we can model cell-type-specific effects by having interaction terms between the celltype and the experimental group, i.e. coefficients that assign an effect to the experimental group only for a given cell type.
+
+For the sake of simplicity, here we will group celltypes into broad classes, and try to identify genes for which the response in endothelial cells differs significantly from other non-neuronal cell types.
+
+```{r}
+pb$cellclass <- pb$celltype <- gsub("excit_|inhib_|[1-9]", "", pb$cluster_id)
+pb$cellclass <- factor(gsub("Astrocytes|Microglia|Oligodendrocytes|OPC", "Glial", pb$cellclass))
+pb$cellclass <- relevel(pb$cellclass, "Glial")
+```
+
+### Coefficient-based approach
+
+By setting the base factor level to "Glial", we will effectively be identifying genes for which the response to treatment in each other cell type differs significantly from the response in Glial cells. (This is one way of using the GLMs, we'll see another right after). We will use the following model:
+
+```{r}
+mm <- model.matrix(~cellclass+group_id+cellclass:group_id, data=as.data.frame(colData(pb)))
+colnames(mm)
+```
+We see that there will be a coefficient modeling the baseline levels in both endothelial cells and neurons (Glial cells representing the intercept), as well as a general effect of the treatment (`group_idLPS`, here effectively the effect in Glial cells), and interaction terms which is added in the respective cell types to the general/glial effect. We then fit our model normally:
+
+```{r}
+dds <- calcNormFactors(DGEList(assay(pb)))
+dds <- dds[filterByExpr(dds, mm, min.counts=20),]
+dds <- estimateDisp(dds, mm)
+fit <- glmQLFit(dds,mm)
+```
+
+And specifically test for the significance of the interaction term related to our cell type of interest (note that we could test for 'any' effect by dropping all the group-related coefficients simulatenously):
+
+```{r}
+resECs <- as.data.frame(topTags(glmQLFTest(fit, "cellclassEndothelial:group_idLPS"), Inf))
+head(resECs)
+```
+
+We can now visualize them: 
+
+```{r, fig.width=10, fig.height=5}
+# get so-called EC-specific DEGs:
+ECspecific <- row.names(resECs)[which(resECs$FDR< 0.05 & abs(resECs$logFC)>log2(1.5))]
+# plot their foldchange across celltypes:
+sechm(pb, ECspecific, assayName="logFC", gaps_at="cluster_id",
+      top_annotation=c("group_id","n_cells"), row_title="Endothelial-specific",
+      column_title_gp=grid::gpar(fontsize=9), column_title_rot=90, row_names_gp=gpar(fontsize=9))
+```
+Most of them do appear to be regulated only (in that fashion) in endothelial cells, with some exceptions: for example, Akap12 is similarly regulated in astrocytes as well. In principle, to determine whether an effect is really EC-specific, we would have to run analyses using all combinations of EC and other cell type. This is however rather cumbersome, and in practice the simpler approach shown here is often sufficient, since we typically observe sets of genes that are either regulated in a cell-type specific manner, or others that are activated across several cell types.
+
+
+### Contrast-based approach
+
+If we were to reverse the question (i.e. look into Glial cells), we'd have to change our model, which isn't very convenient. Another way to use the GLMs, which avoids this annoyance, is with contrasts.
+
+For this approach, we set the model to use no intercept, and no 'global/base' coefficient related to the experimental group, but only celltype-specific baselines and effects:
+
+```{r}
+mm <- model.matrix(~0+cellclass+cellclass:group_id, data=as.data.frame(colData(pb)))
+colnames(mm)
+```
+
+```{r}
+dds <- estimateDisp(dds, mm)
+fit <- glmQLFit(dds,mm)
+```
+
+For testing, we supply a contrast vector which indicates what we want to compare to what:
+
+```{r}
+cont <- c(0,0,0,-1,1,-1)  # corresponds to the colnames(mm)
+resECs <- as.data.frame(topTags(glmQLFTest(fit, contrast=cont), Inf))
+head(resECs)
+```
+
+```{r, fig.width=10, fig.height=5}
+# get so-called EC-specific DEGs:
+ECspecific <- row.names(resECs)[which(resECs$FDR< 0.05 & abs(resECs$logFC)>log2(1.5))]
+# plot their foldchange across celltypes:
+sechm(pb, ECspecific, assayName="logFC", gaps_at="cluster_id", show_rownames = FALSE,
+      top_annotation=c("group_id","n_cells"), row_title="Endothelial-specific",
+      column_title_gp=grid::gpar(fontsize=9))
+```
+The results are similar to the ones we had with the previous approach, but not quite the same.
+In fact the two approaches ask slightly different questions, none of which is exactly the question we had in mind to start with, but it does get rather close to it!
+
+## Final comments
+
+### Nested structure
+
+In what we did here, the different samples reappeared in the different cell types and were treated as if they were statistically independent, which they clearly aren't (this is akin to repeated testing). This was even made worse by the fact that when we pooled cell types together into broaded classes, we kept all pseudobulk of the different subtypes. Already aggregating the cell types we merged would have lessened the risk presented by the non-independence of the samples. Ultimately, the right statistical approach to handle this would be mixed models, but full mixed models don't work so nicely in the context of RNAseq analysis with few samples. An alternative is to rely on the combination of `voom` and the `duplicateCorrelation` approach, both from the `limma` package (see `limma::limmaUsersGuide()`, section 11.3). This models sample effects albeit at a global (rather than gene-specific) level, but it was shown to work pretty nicely in practice ([Germain 2017](http://dx.doi.org/10.1016/j.stemcr.2017.05.012)), even better than fully nested designs.
+
+### Staged FDR
+
+It is notoriously more difficult to get significance for interaction terms. In many contexts, a staged FDR approach can boost power while maintaining error control. The [stageR](https://bioconductor.org/packages/release/bioc/html/stageR.html) bioconductor package implements such a strategy.
