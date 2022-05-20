@@ -27,6 +27,7 @@ jobs:
           cp day1_RNA_velocity/my-macros.js day1_RNA_velocity/my-theme.css day1_RNA_velocity/insert-logo-title.html _deploy/day1_RNA_velocity_slides
           cp day1_python_and_R/01_introduction.html _deploy/day1_python_and_R__01_introduction.html
           cp day2_experimental_approaches/Smallwood_Advanced_SC_Analysis_Basel_2022.pdf _deploy/day2_experimental_approaches__Smallwood_Advanced_SC_Analysis_Basel_2022.pdf
+          cp day4_deep_generative_networks/DGNs_Intro_2022.pdf _deploy/day4_deep_generative_networks__DGNs_Intro_2022.pdf
           cp day3_spatial_transcriptomics/202204_advomics_slides.pdf _deploy/day3_spatial_transcriptomics__202204_advomics_slides.pdf
           mkdir -p _deploy/day3_interactive_visualization_iSEE_slides
           cp day3_interactive_visualization_iSEE/slides.html _deploy/day3_interactive_visualization_iSEE_slides/index.html

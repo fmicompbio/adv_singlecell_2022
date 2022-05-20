@@ -57,7 +57,7 @@ For more information and to apply, please visit: https://www.sib.swiss/training/
 | Friday, April 29    |                                                        |  
 | -----------------:|:-------------------------------------------------------|  
 |      9:00 -  9:30 | Interactive visualization with *iSEE* (*C. Soneson*, [slides](https://fmicompbio.github.io/adv_singlecell_2022/day3_interactive_visualization_iSEE_slides/)) |  
-|      9:30 - 10:00 | Deep generative networks (*P. Papasaikas*) |  
+|      9:30 - 10:00 | Deep generative networks (*P. Papasaikas*, [slides](https://fmicompbio.github.io/adv_singlecell_2022/day4_deep_generative_networks__DGNs_Intro_2022.pdf)) |  
 |     10:00 - 10:15 | *Break* |
 |     10:15 - 12:00 | Deep generative networks (*P. Papasaikas*) |  
 |     12:00 - 13:30 | *Lunch* |  
